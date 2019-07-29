@@ -1,6 +1,7 @@
 # Ignore everything
 *
 # Except for..
+!README.md
 !.gitignore
 !init.el
 !config.org

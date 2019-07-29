@@ -13,6 +13,8 @@
   (package-refresh-contents)
   (package-install 'doom-themes))
 
+(defalias 'yes-or-no-p 'y-or-n-p)
+
 (defvar my-term-shell "/bin/bash")
 (defadvice ansi-term (before force-bash)
   (interactive (list my-term-shell)))
