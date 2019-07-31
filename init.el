@@ -34,13 +34,13 @@
     ("a94f1a015878c5f00afab321e4fef124b2fc3b823c8ddd89d360d710fc2bddfc" default)))
  '(package-selected-packages
    (quote
-    (dmenu airline-themes powerline company files sudo-edit switch-window avy doom-themes which-key use-package))))
+    (dmenu powerline company files sudo-edit switch-window avy doom-themes which-key use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "DejaVu Sans Mono")))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 97 :width normal :foundry "outline" :family "DejaVu Sans Mono")))))
 (put 'upcase-region 'disabled nil)
 
 (provide 'init)

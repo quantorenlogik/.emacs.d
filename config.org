@@ -14,7 +14,9 @@
   (scroll-bar-mode -1)
 
   ;; add some padding
-  ;; TO DO
+  (add-hook 'window-configuration-change-hook
+          (lambda ()
+            (set-window-margins (car (get-buffer-window-list (current-buffer) nil t)) 2 2)))
 
   ;; remove default startup screen
   (setq inhibit-startup-message t)
@@ -352,15 +354,15 @@ I use avy for quick navigation in any buffer.
 * Mode Line
 ** powerline with basic config
 #+BEGIN_SRC emacs-lisp
-(require 'powerline)
-(powerline-default-theme)
-
 (use-package powerline
   :ensure t
   :init
   (setq powerline-default-separator (quote arrow)
         powerline-inactive1 '((t (:background "grey11" :foreground "#c5c8c6")))
         powerline-inactive2 '((t (:background "grey20" :foreground "#c5c8c6")))))
+
+(require 'powerline)
+(powerline-default-theme)
 #+END_SRC
 * dmenu
 #+BEGIN_SRC emacs-lisp
