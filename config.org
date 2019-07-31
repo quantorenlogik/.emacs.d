@@ -56,6 +56,11 @@
   (line-number-mode 1)
   (column-number-mode 1)
 #+END_SRC
+** Disable auto-save and backup files
+#+BEGIN_SRC emacs-lisp
+(setq make-backup-files nil) ;; stop creating those backup~ files
+(setq auto-save-default nil) ;; stop creating those #autosave# files
+#+END_SRC
 
 ** subword
 For camelcase
@@ -251,6 +256,82 @@ Reduce the highlight delay (instantly).
              '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
 #+END_SRC
 
+** Essential workflow config for project management
+https://www.suenkler.info/docs/emacs-orgmode/
+https://www.suenkler.info/notes/emacs-config/
+
+*** Basic setup for agenda-files
+#+BEGIN_SRC emacs-lisp
+(setq org-agenda-files (quote
+   ("~/Nextcloud/org/tasks.org"
+    "~/Nextcloud/org/notes/")))
+#+END_SRC
+
+*** org-download
+    Drag and drop images to Emacs org-mode
+#+BEGIN_SRC emacs-lisp
+(use-package org-download
+  :ensure t)
+#+END_SRC
+
+*** Workflow states
+#+BEGIN_SRC emacs-lisp
+;; "!" = timestamp
+;; "@" = note
+(setq org-todo-keywords
+ '((sequence "TODO(t)" "IN-PROG(s!)" "WAITING(w@/!)" "APPT(a)" "PROJ(p)" "NOTIZ(n)" "BESPROCHEN(b)"
+             "DELEGATED(g@/!)" "|" "DONE(d!)" "ZKTO(z)" "CANCELED(c@)")))
+
+;; Fast TODO Selection
+(setq org-use-fast-todo-selection t)
+#+END_SRC
+
+*** Logging
+Automatically add timestamp for completing tasks
+#+BEGIN_SRC emacs-lisp
+(setq org-log-done 'time)
+
+;; use seperate drawer
+(setq org-log-into-drawer t)
+#+END_SRC
+
+*** Visual improvements
+#+BEGIN_SRC emacs-lisp
+(setq org-tags-column 0)
+#+END_SRC
+
+*** Capture
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(("t" "Aufgabe in tasks.org" entry (file+headline "~/Nextcloud/org/tasks.org" "Inbox")
+         "* TODO %?")
+        ("w" "Waiting For Reply (Mail)" entry (file+headline "~/Nextcloud/org/tasks.org" "Inbox")
+         "* WAITING Antwort auf %a")
+        ("m" "Aufgabe aus Mail" entry (file+headline "~/Nextcloud/org/tasks.org" "Inbox")
+         "* TODO %? , Link: %a")
+        ("z" "Zeiteintrag in tasks.org" entry (file+headline "~/Nextcloud/org/tasks.org" "Inbox")
+         "* ZKTO %? \n  %i" :clock-in t :clock-resume t)
+        ("c" "Contacts" entry (file "~/Nextcloud/org/contacts.org")
+         "* %(org-contacts-template-name) \n :PROPERTIES: %(org-contacts-template-email) \n :BIRTHDAY: \n :END:")
+        ("j" "Journal" entry (file+datetree "~/Nextcloud/org/journal.org")
+         "* %?\nEntered on %U\n  %i")
+        ("p" "password" entry (file "~/Nextcloud/org/passwords.gpg")
+         "* %^{Title}\n  %^{PASSWORD}p %^{USERNAME}p")))
+#+END_SRC
+
+*** keybindings
+#+BEGIN_SRC emacs-lisp
+;; Tasks-Datei auf C-c g
+(global-set-key (kbd "C-c g") '(lambda ()
+                           (interactive)
+                           (find-file "~/Nextcloud/org/tasks.org")))
+
+;; Agenda
+(global-set-key (kbd "C-c a") 'org-agenda)
+
+;; Org Capture
+(define-key global-map (kbd "C-c c") 'org-capture)
+#+END_SRC
 * Ido mode
 Selecting buffers/files with great efficiency. In my opinion, Ido is enough to replace Ivy and Helm. We install ido-vertical to get a better view of the available options (use C-n, C-p or arrow keys to navigate). Flex matching is a nice touch and we are lucky to have flx-ido for that purpose.
 #+BEGIN_SRC emacs-lisp

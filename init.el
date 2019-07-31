@@ -34,7 +34,7 @@
     ("a94f1a015878c5f00afab321e4fef124b2fc3b823c8ddd89d360d710fc2bddfc" default)))
  '(package-selected-packages
    (quote
-    (dmenu powerline company files sudo-edit switch-window avy doom-themes which-key use-package))))
+    (org-download dmenu powerline company files sudo-edit switch-window avy doom-themes which-key use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
