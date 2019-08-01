@@ -257,8 +257,8 @@ Reduce the highlight delay (instantly).
 #+END_SRC
 
 ** Essential workflow config for project management
-https://www.suenkler.info/docs/emacs-orgmode/
-https://www.suenkler.info/notes/emacs-config/
+   https://www.suenkler.info/docs/emacs-orgmode/
+   https://www.suenkler.info/notes/emacs-config/
 
 *** Basic setup for agenda-files
 #+BEGIN_SRC emacs-lisp
@@ -451,4 +451,11 @@ I use avy for quick navigation in any buffer.
   :ensure t
   :bind
   ("s-SPC" . dmenu))
+#+END_SRC
+* Fix ^M for mixed line endings (DOS, UNIX)
+#+BEGIN_SRC emacs-lisp
+(defun remove-dos-eol ()
+  (interactive)
+  (setq buffer-display-table (make-display-table))
+  (aset buffer-display-table ?\^M []))
 #+END_SRC
