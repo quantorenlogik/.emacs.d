@@ -297,7 +297,7 @@ Automatically add timestamp for completing tasks
 
 *** Visual improvements
 #+BEGIN_SRC emacs-lisp
-(setq org-tags-column 0)
+;(setq org-tags-column 0)
 #+END_SRC
 
 *** Capture
@@ -331,6 +331,74 @@ Automatically add timestamp for completing tasks
 
 ;; Org Capture
 (define-key global-map (kbd "C-c c") 'org-capture)
+#+END_SRC
+
+** Blog publishing config
+#+BEGIN_SRC emacs-lisp
+(use-package htmlize
+  :ensure t)
+
+(use-package ox-publish
+  :init
+  (setq my-blog-header-file "~/Nextcloud/org/blog/partials/header.html"
+        my-blog-footer-file "~/Nextcloud/org/blog/partials/footer.html"
+        org-html-validation-link nil)
+
+  ;; Load partials on memory
+  (defun my-blog-header (arg)
+    (with-temp-buffer
+      (insert-file-contents my-blog-header-file)
+      (buffer-string)))
+
+  (defun my-blog-footer (arg)
+    (with-temp-buffer
+      (insert-file-contents my-blog-footer-file)
+      (buffer-string)))
+
+  (defun filter-local-links (link backend info)
+    "Filter that converts all the /index.html links to /"
+    (if (org-export-derived-backend-p backend 'html)
+        (replace-regexp-in-string "/index.html" "/" link)))
+  (setq org-publish-project-alist
+        '(;; Publish the posts
+          ("blog-notes"
+           :base-directory "~/Nextcloud/org/blog"
+           :base-extension "org"
+           :publishing-directory "~/Nextcloud/org/blog/public"
+           :recursive t
+           :publishing-function org-html-publish-to-html
+           :headline-levels 4
+           :section-numbers nil
+           :html-head nil
+           :html-head-include-default-style nil
+           :html-head-include-scripts nil
+           :html-preamble my-blog-header
+           :html-postamble my-blog-footer
+           )
+
+          ;; For static files that should remain untouched
+          ("blog-static"
+           :base-directory "~/Nextcloud/org/blog"
+           :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|eot\\|svg\\|woff\\|woff2\\|ttf"
+           :publishing-directory "~/Nextcloud/org/blog/public"
+           :recursive t
+           :publishing-function org-publish-attachment
+           )
+
+          ;; Combine the two previous components in a single one
+          ("blog" :components ("blog-notes" "blog-static"))))
+
+  (add-to-list 'org-export-filter-link-functions 'filter-local-links))
+#+END_SRC
+* Markdown config
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
 #+END_SRC
 * Ido mode
 Selecting buffers/files with great efficiency. In my opinion, Ido is enough to replace Ivy and Helm. We install ido-vertical to get a better view of the available options (use C-n, C-p or arrow keys to navigate). Flex matching is a nice touch and we are lucky to have flx-ido for that purpose.
