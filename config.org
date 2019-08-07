@@ -169,7 +169,7 @@ Edit file as root (Linux specific)
 
 ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
 ;; may have their own settings.
-(load-theme 'doom-one t)
+(load-theme 'doom-opera t)
 
 ;; Enable flashing mode-line on errors
 (doom-themes-visual-bell-config)
@@ -359,6 +359,8 @@ Automatically add timestamp for completing tasks
     "Filter that converts all the /index.html links to /"
     (if (org-export-derived-backend-p backend 'html)
         (replace-regexp-in-string "/index.html" "/" link)))
+
+  :config
   (setq org-publish-project-alist
         '(;; Publish the posts
           ("blog-notes"
