@@ -1,12 +1,15 @@
-#+Title: Peronal config.org
-#+Author: Kai Poblocki
-#+Date: 2019
+#+TITLE: Peronal config.org
+#+AUTHOR: Kai Poblocki
+#+DATE: 2019
 
 * Cleaning up the UI and enhance basic defaults
 #+BEGIN_SRC emacs-lisp
   (setq frame-title-format '("Emacs") ; nice window title
         ring-bell-function 'ignore       ; minimize distraction
         default-directory "~/")
+
+  ;; UTF-8 as default
+  (set-language-environment "UTF-8")
 
   ;; literally every YouTube tutorial starts with this
   (tool-bar-mode -1)
@@ -63,7 +66,7 @@
 #+END_SRC
 
 ** subword
-For camelcase
+   For camelcase
 #+BEGIN_SRC emacs-lisp
 (global-subword-mode 1)
 #+END_SRC
@@ -159,6 +162,45 @@ Edit file as root (Linux specific)
 (global-set-key (kbd "<s-return>") 'ansi-term)
 #+END_SRC
 
+* Icons
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons
+  :ensure t)
+#+END_SRC
+* Tabs
+#+BEGIN_SRC emacs-lisp
+(use-package centaur-tabs
+  :ensure t
+  :demand
+  :config
+  (centaur-tabs-mode t)
+  :bind
+  ("C-<prior>" . centaur-tabs-backward)
+  ("C-<next>" . centaur-tabs-forward))
+
+; You can make the headline face match the centaur-tabs-default face. This makes the tabbar have an uniform appearance.
+;(centaur-tabs-headline-match)
+
+; Tab Styles
+(setq centaur-tabs-style "bar")
+
+; Tab height
+(setq centaur-tabs-height 32)
+
+; Tab icons
+(setq centaur-tabs-set-icons t)
+
+; Graying out unselected icons
+(setq centaur-tabs-gray-out-icons 'buffer)
+
+; Display colored bar at the left of selected tab
+(setq centaur-tabs-set-bar 'left)
+
+; Display a marker indicating that a buffer has been modified (atom-style)
+(setq centaur-tabs-set-modified-marker t)
+(setq centaur-tabs-modified-marker "*")
+
+#+END_SRC
 * Configure doom-themes
 #+BEGIN_SRC emacs-lisp
 (require 'doom-themes)
@@ -169,15 +211,15 @@ Edit file as root (Linux specific)
 
 ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
 ;; may have their own settings.
-(load-theme 'doom-opera t)
+(load-theme 'doom-nord t)
 
 ;; Enable flashing mode-line on errors
 (doom-themes-visual-bell-config)
 
 ;; Enable custom neotree theme (all-the-icons must be installed!)
-(doom-themes-neotree-config)
+;(doom-themes-neotree-config)
 ;; or for treemacs users
-(doom-themes-treemacs-config)
+;(doom-themes-treemacs-config)
 
 ;; Corrects (and improves) org-mode's native fontification.
 (doom-themes-org-config)
@@ -227,7 +269,9 @@ Reduce the highlight delay (instantly).
   :config
   (dashboard-setup-startup-hook)
   (setq dashboard-items '((recents . 10)))
-  (setq dashboard-banner-logo-title "Moin."))
+  (setq dashboard-banner-logo-title "Moin.")
+  ;; Set the banner
+  (setq dashboard-startup-banner 'logo))
 #+END_SRC
 
 * Org mode modifications
@@ -316,9 +360,80 @@ Automatically add timestamp for completing tasks
         ("j" "Journal" entry (file+datetree "~/Nextcloud/org/journal.org")
          "* %?\nEntered on %U\n  %i")
         ("p" "password" entry (file "~/Nextcloud/org/passwords.gpg")
-         "* %^{Title}\n  %^{PASSWORD}p %^{USERNAME}p")))
+         "* %^{Title}\n  %^{PASSWORD}p %^{USERNAME}p")
+        ("b" "Bookmark" entry (file+headline "~/Nextcloud/org/notes/bookmarks.org" "Bookmarks")
+       "* %?\n:PROPERTIES:\n:CREATED: %U\n:NOTES:%^{Notes}\n:END:\n\n" :empty-lines 1)))
 #+END_SRC
 
+*** Capture links as bookmarks
+    Helper function =string-replace=
+#+BEGIN_SRC emacs-lisp
+(defun string-replace (this withthat in)
+  "replace THIS with WITHTHAT' in the string IN"
+  (with-temp-buffer
+    (insert in)
+    (goto-char (point-min))
+    (replace-string this withthat)
+    (buffer-substring (point-min) (point-max))))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (defun my-www-get-page-title (url)
+    "retrieve title of web page.
+from: http://www.opensubscriber.com/message/help-gnu-emacs@gnu.org/14332449.html"
+    (let ((title))
+      (with-current-buffer (url-retrieve-synchronously url)
+    (goto-char (point-min))
+    (re-search-forward "<title>\\([^<]*\\)</title>" nil t 1)
+    (setq title (match-string 1))
+    (goto-char (point-min))
+    (re-search-forward "charset=\\([-0-9a-zA-Z]*\\)" nil t 1)
+        (string-replace "&nbsp;" " "
+                        ;;(decode-coding-string title (intern (match-string 1)))
+                        ;; following line fixes charset issues from
+                        ;; previous line:
+                        (decode-coding-string title 'utf-8)
+                        ))
+      )
+    )
+
+
+  (defun my-url-linkify ()
+    "Make URL at cursor point into an Org-mode link.
+If there's a text selection, use the text selection as input.
+
+Example: http://example.com/xyz.htm
+becomes
+\[\[http://example.com/xyz.htm\]\[Source example.com\]\]
+
+Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
+    (interactive)
+    (let (resultLinkStr bds p1 p2 domainName)
+      ;; get the boundary of URL or text selection
+      (if (region-active-p)
+      (setq bds (cons (region-beginning) (region-end)) )
+    (setq bds (bounds-of-thing-at-point 'url))
+    )
+      ;; set URL
+      (setq p1 (car bds))
+      (setq p2 (cdr bds))
+      (let (
+        (url (buffer-substring-no-properties p1 p2))
+        )
+    ;; retrieve title
+    (let ((title (my-www-get-page-title url)))
+      (message (concat "title is: " title))
+      ;;(setq url (replace-regexp-in-string "&" "&amp;" url))
+      (let ((resultLinkStr (concat "[[" url "][" title "]]")))
+        ;; delete url and insert the link
+        (delete-region p1 p2)
+        (insert resultLinkStr)
+        )
+      )
+    )
+      )
+    )
+#+END_SRC
 *** keybindings
 #+BEGIN_SRC emacs-lisp
 ;; Tasks-Datei auf C-c g
@@ -503,17 +618,24 @@ I use avy for quick navigation in any buffer.
   (add-hook 'after-init-hook 'global-company-mode))
 #+END_SRC
 * Mode Line
-** powerline with basic config
+** doom-modeline
 #+BEGIN_SRC emacs-lisp
-(use-package powerline
+(use-package doom-modeline
   :ensure t
-  :init
-  (setq powerline-default-separator (quote arrow)
-        powerline-inactive1 '((t (:background "grey11" :foreground "#c5c8c6")))
-        powerline-inactive2 '((t (:background "grey20" :foreground "#c5c8c6")))))
+  :defer 0.1
+  :config (doom-modeline-mode))
 
-(require 'powerline)
-(powerline-default-theme)
+(use-package fancy-battery
+  :ensure t
+  :after doom-modeline
+  :hook (after-init . fancy-battery-mode))
+
+(use-package solaire-mode
+  :ensure t
+  :custom (solaire-mode-remap-fringe t)
+  :config
+  (solaire-mode-swap-bg)
+  (solaire-global-mode +1))
 #+END_SRC
 * dmenu
 #+BEGIN_SRC emacs-lisp
