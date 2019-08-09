@@ -56,6 +56,9 @@
   (setq-default indent-tabs-mode nil
                 tab-width 4)
 
+  ;; visual improvements for tags in org mode
+  (setq org-tags-column -80)
+
   ;; show lines and columns on the modeline
   (line-number-mode 1)
   (column-number-mode 1)
@@ -351,11 +354,6 @@ Automatically add timestamp for completing tasks
 (setq org-log-into-drawer t)
 #+END_SRC
 
-*** Visual improvements
-#+BEGIN_SRC emacs-lisp
-;(setq org-tags-column 0)
-#+END_SRC
-
 *** Capture
 #+BEGIN_SRC emacs-lisp
 (setq org-capture-templates
@@ -595,6 +593,15 @@ I use avy for quick navigation in any buffer.
   :ensure t
   :bind
   ("M-s" . avy-goto-char))
+#+END_SRC
+* deft
+#+BEGIN_SRC emacs-lisp
+(use-package deft
+  :ensure t)
+(setq deft-extensions '("txt" "tex" "org"))
+(setq deft-directory "~/Nextcloud/org")
+(setq deft-recursive t)
+(global-set-key [f8] 'deft)
 #+END_SRC
 * Switch between windows efficiently
 #+BEGIN_SRC emacs-lisp
