@@ -6,6 +6,7 @@
 #+BEGIN_SRC emacs-lisp
   (setq frame-title-format '("Emacs") ; nice window title
         ring-bell-function 'ignore       ; minimize distraction
+        visible-bell nil
         default-directory "~/")
 
   ;; UTF-8 as default
@@ -58,6 +59,17 @@
   ;; show lines and columns on the modeline
   (line-number-mode 1)
   (column-number-mode 1)
+
+  ;; disable blinking cursor
+  (blink-cursor-mode -1)
+
+  ;; The native border "consumes" a pixel of the fringe on righter-most splits,
+  ;; `window-divider' does not. Available since Emacs 25.1.
+  (setq-default window-divider-default-places t
+                window-divider-default-bottom-width 1
+                window-divider-default-right-width 1)
+  (add-hook 'doom-init-ui-hook #'window-divider-mode)
+
 #+END_SRC
 ** Disable auto-save and backup files
 #+BEGIN_SRC emacs-lisp
@@ -214,7 +226,7 @@ Edit file as root (Linux specific)
 (load-theme 'doom-nord t)
 
 ;; Enable flashing mode-line on errors
-(doom-themes-visual-bell-config)
+;(doom-themes-visual-bell-config)
 
 ;; Enable custom neotree theme (all-the-icons must be installed!)
 ;(doom-themes-neotree-config)
@@ -241,7 +253,7 @@ By default, the scrolling is way too fast to be precise and helpful, let's tune 
 #+BEGIN_SRC emacs-lisp
 (use-package mwheel
   :ensure nil
-  :config (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
+  :config (setq mouse-wheel-scroll-amount '(3 ((shift) . 3))
                 mouse-wheel-progressive-speed nil))
 #+END_SRC
 
@@ -440,6 +452,10 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 (global-set-key (kbd "C-c g") '(lambda ()
                            (interactive)
                            (find-file "~/Nextcloud/org/tasks.org")))
+
+(global-set-key (kbd "C-c b") '(lambda ()
+                           (interactive)
+                           (find-file "~/Nextcloud/org/notes/bookmarks.org")))
 
 ;; Agenda
 (global-set-key (kbd "C-c a") 'org-agenda)
