@@ -85,7 +85,6 @@
 #+BEGIN_SRC emacs-lisp
 (global-subword-mode 1)
 #+END_SRC
-
 ** electric pairs
 Automatically generate corresponding brackets
 #+BEGIN_SRC emacs-lisp
@@ -97,7 +96,24 @@ Automatically generate corresponding brackets
 (electric-pair-mode t)
 #+END_SRC
 
-* convinient functions
+* Functions for improved workflow
+** window splitting function
+#+BEGIN_SRC emacs-lisp
+(defun split-and-follow-horizontally ()
+  (interactive)
+  (split-window-below)
+  (balance-windows)
+  (other-window 1))
+(global-set-key (kbd "C-x 2") 'split-and-follow-horizontally)
+
+(defun split-and-follow-vertically ()
+  (interactive)
+  (split-window-right)
+  (balance-windows)
+  (other-window 1))
+(global-set-key (kbd "C-x 3") 'split-and-follow-vertically)
+#+END_SRC
+
 ** kill-whole-word
 #+BEGIN_SRC emacs-lisp
 (defun kill-whole-word ()
@@ -118,6 +134,209 @@ Automatically generate corresponding brackets
           (point-at-eol)))))
 (global-set-key (kbd "C-c w l") 'copy-whole-line)
 #+END_SRC
+* Packages
+** UI
+*** Display preview for key bindings: =which-key=
+#+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode))
+#+END_SRC
+*** Theme: =doom-themes=
+#+BEGIN_SRC emacs-lisp
+(require 'doom-themes)
+
+;; Global settings (defaults)
+(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+      doom-themes-enable-italic t) ; if nil, italics is universally disabled
+
+;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
+;; may have their own settings.
+(load-theme 'doom-nord t)
+
+;; Enable flashing mode-line on errors
+;(doom-themes-visual-bell-config)
+
+;; Enable custom neotree theme (all-the-icons must be installed!)
+;(doom-themes-neotree-config)
+;; or for treemacs users
+;(doom-themes-treemacs-config)
+
+;; Corrects (and improves) org-mode's native fontification.
+(doom-themes-org-config)
+#+END_SRC
+*** Modeline: =doom-modeline=
+#+BEGIN_SRC emacs-lisp
+(use-package doom-modeline
+  :ensure t
+  :defer 0.1
+  :config (doom-modeline-mode))
+
+(use-package fancy-battery
+  :ensure t
+  :after doom-modeline
+  :hook (after-init . fancy-battery-mode))
+
+(use-package solaire-mode
+  :ensure t
+  :custom (solaire-mode-remap-fringe t)
+  :config
+  (solaire-mode-swap-bg)
+  (solaire-global-mode +1))
+#+END_SRC
+*** Autocompletion for commands: =smex=
+#+BEGIN_SRC emacs-lisp
+(use-package smex
+  :ensure t
+  :init (smex-initialize)
+  :bind
+  ("M-x" . smex))
+#+END_SRC
+*** Icons: =all-the-icons=
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons
+  :ensure t)
+#+END_SRC
+*** Tabs: =centaur-tabs=
+#+BEGIN_SRC emacs-lisp
+(use-package centaur-tabs
+  :ensure t
+  :demand
+  :config
+  (centaur-tabs-mode t)
+  :bind
+  ("C-<prior>" . centaur-tabs-backward)
+  ("C-<next>" . centaur-tabs-forward))
+
+;; You can make the headline face match the centaur-tabs-default face. This makes the tabbar have an uniform appearance.
+;(centaur-tabs-headline-match)
+
+;; Tab Styles
+(setq centaur-tabs-style "bar")
+
+;; Tab height
+(setq centaur-tabs-height 32)
+
+;; Tab icons
+(setq centaur-tabs-set-icons t)
+
+;; Graying out unselected icons
+(setq centaur-tabs-gray-out-icons 'buffer)
+
+;; Display colored bar at the left of selected tab
+(setq centaur-tabs-set-bar 'left)
+
+;; Display a marker indicating that a buffer has been modified (atom-style)
+(setq centaur-tabs-set-modified-marker t)
+(setq centaur-tabs-modified-marker "*")
+#+END_SRC
+*** Dashboard: =dashboard=
+#+BEGIN_SRC emacs-lisp
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  (setq dashboard-items '((recents . 10)))
+  (setq dashboard-banner-logo-title "Moin.")
+  ;; Set the banner
+  (setq dashboard-startup-banner 'logo))
+#+END_SRC
+** Navigation
+*** Jumping to text (char-based): =avy=
+#+BEGIN_SRC emacs-lisp
+(use-package avy
+  :ensure t
+  :bind
+  ("M-s" . avy-goto-char))
+#+END_SRC
+*** Multiple cursors: =multiple-cursors=
+*** Mouse wheel configuration: =mwheel=
+    By default, the scrolling is way too fast to be precise and helpful, let's tune it down a little bit.
+#+BEGIN_SRC emacs-lisp
+(use-package mwheel
+  :ensure nil
+  :config (setq mouse-wheel-scroll-amount '(3 ((shift) . 3))
+                mouse-wheel-progressive-speed nil))
+#+END_SRC
+*** Switch windows efficiently: =switch-window=
+#+BEGIN_SRC emacs-lisp
+(use-package switch-window
+  :ensure t
+  :config
+  (setq switch-window-input-style 'minibuffer)
+  (setq switch-window-increase 4)
+  (setq switch-window-threshold 2)
+  (setq switch-window-shortcut-style 'qwerty)
+  (setq switch-window-qwerty-shortcuts
+        '("a" "s" "d" "f" "h" "j" "k" "l"))
+  :bind
+  ([remap other-window] . switch-window))
+#+END_SRC
+** Buffers
+*** Selecting buffers/files: =ido-vertical-mode=
+    Selecting buffers/files with great efficiency. In my opinion, Ido is enough to replace =Ivy= and =Helm=. We install ido-vertical to get a better view of the available options (use C-n, C-p or arrow keys to navigate). Flex matching is a nice touch and we are lucky to have flx-ido for that purpose.
+#+BEGIN_SRC emacs-lisp
+(use-package ido-vertical-mode
+  :ensure t
+  :hook ((after-init . ido-mode)
+         (after-init . ido-vertical-mode))
+  :config
+  (setq ido-everywhere t
+        ido-enable-flex-matching t
+        ido-vertical-define-keys 'C-n-C-p-up-and-down))
+
+(use-package flx-ido :config (flx-ido-mode)
+  :ensure t)
+#+END_SRC
+*** Refresh buffers: =autorevert=
+#+BEGIN_SRC emacs-lisp
+(use-package autorevert
+  :ensure nil
+  :hook (after-init . global-auto-revert-mode)
+  :config
+  (setq auto-revert-interval 2
+        auto-revert-check-vc-info t
+        auto-revert-verbose nil))
+#+END_SRC
+*** Autocompletion: =company=
+#+BEGIN_SRC emacs-lisp
+(use-package company
+  :ensure t
+  :init
+  (add-hook 'after-init-hook 'global-company-mode))
+#+END_SRC
+*** Editing as super user (GNU/Linux): =sudo-edit=
+    Edit file as root (Linux specific)
+#+BEGIN_SRC emacs-lisp
+(use-package sudo-edit
+  :ensure t
+  :bind ("s-e" . sudo-edit))
+#+END_SRC
+*** Searching files: =deft=
+#+BEGIN_SRC emacs-lisp
+(use-package deft
+  :ensure t)
+
+(setq deft-extensions '("txt" "tex" "org"))
+(setq deft-directory "~/Nextcloud/org")
+(setq deft-recursive t)
+(global-set-key [f8] 'deft)
+#+END_SRC
+** Major modes
+*** Markdown: =markdown-mode=
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
+#+END_SRC
+** Minor modes
+*** Pandoc: =pandoc-mode=
+
 
 * config.org edit/reload keybindings
 ** edit config.org
@@ -152,21 +371,6 @@ Automatically generate corresponding brackets
   (setq confirm-kill-process nil))
 #+END_SRC
 
-* which-key
- #+BEGIN_SRC emacs-lisp
- (use-package which-key
-  :ensure t
-  :init
-  (which-key-mode))
- #+END_SRC
-
-* sudo edit
-Edit file as root (Linux specific)
-#+BEGIN_SRC emacs-lisp
-(use-package sudo-edit
-  :ensure t
-  :bind ("s-e" . sudo-edit))
-#+END_SRC
 
 * Terminal: use bash for ansi-term
 #+BEGIN_SRC emacs-lisp
@@ -177,88 +381,8 @@ Edit file as root (Linux specific)
 (global-set-key (kbd "<s-return>") 'ansi-term)
 #+END_SRC
 
-* Icons
-#+BEGIN_SRC emacs-lisp
-(use-package all-the-icons
-  :ensure t)
-#+END_SRC
-* Tabs
-#+BEGIN_SRC emacs-lisp
-(use-package centaur-tabs
-  :ensure t
-  :demand
-  :config
-  (centaur-tabs-mode t)
-  :bind
-  ("C-<prior>" . centaur-tabs-backward)
-  ("C-<next>" . centaur-tabs-forward))
 
-; You can make the headline face match the centaur-tabs-default face. This makes the tabbar have an uniform appearance.
-;(centaur-tabs-headline-match)
 
-; Tab Styles
-(setq centaur-tabs-style "bar")
-
-; Tab height
-(setq centaur-tabs-height 32)
-
-; Tab icons
-(setq centaur-tabs-set-icons t)
-
-; Graying out unselected icons
-(setq centaur-tabs-gray-out-icons 'buffer)
-
-; Display colored bar at the left of selected tab
-(setq centaur-tabs-set-bar 'left)
-
-; Display a marker indicating that a buffer has been modified (atom-style)
-(setq centaur-tabs-set-modified-marker t)
-(setq centaur-tabs-modified-marker "*")
-
-#+END_SRC
-* Configure doom-themes
-#+BEGIN_SRC emacs-lisp
-(require 'doom-themes)
-
-;; Global settings (defaults)
-(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-      doom-themes-enable-italic t) ; if nil, italics is universally disabled
-
-;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
-;; may have their own settings.
-(load-theme 'doom-nord t)
-
-;; Enable flashing mode-line on errors
-;(doom-themes-visual-bell-config)
-
-;; Enable custom neotree theme (all-the-icons must be installed!)
-;(doom-themes-neotree-config)
-;; or for treemacs users
-;(doom-themes-treemacs-config)
-
-;; Corrects (and improves) org-mode's native fontification.
-(doom-themes-org-config)
-#+END_SRC
-
-* Automatically refresh the buffer for changes outside of Emacs
-#+BEGIN_SRC emacs-lisp
-;(use-package autorevert
-;  :ensure nil
-;  :hook (after-init . global-auto-revert-mode)
-;  :config
-;  (setq auto-revert-interval 2
-;        auto-revert-check-vc-info t
-;        auto-revert-verbose nil))
-#+END_SRC
-
-* Reasonable speed for mouse wheel (track-pad)
-By default, the scrolling is way too fast to be precise and helpful, let's tune it down a little bit.
-#+BEGIN_SRC emacs-lisp
-(use-package mwheel
-  :ensure nil
-  :config (setq mouse-wheel-scroll-amount '(3 ((shift) . 3))
-                mouse-wheel-progressive-speed nil))
-#+END_SRC
 
 * Show matching parentheses
 Reduce the highlight delay (instantly).
@@ -270,6 +394,7 @@ Reduce the highlight delay (instantly).
   (show-paren-mode))
 #+END_SRC
 
+
 * Clean up whitespace and unnecessary empty lines on save
 #+BEGIN_SRC emacs-lisp
 (use-package whitespace
@@ -277,17 +402,7 @@ Reduce the highlight delay (instantly).
   :config (add-hook 'before-save-hook 'whitespace-cleanup))
 #+END_SRC
 
-* Dashboard config
-#+BEGIN_SRC emacs-lisp
-(use-package dashboard
-  :ensure t
-  :config
-  (dashboard-setup-startup-hook)
-  (setq dashboard-items '((recents . 10)))
-  (setq dashboard-banner-logo-title "Moin.")
-  ;; Set the banner
-  (setq dashboard-startup-banner 'logo))
-#+END_SRC
+
 
 * Org mode modifications
 ** org-bullets
@@ -521,40 +636,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 
   (add-to-list 'org-export-filter-link-functions 'filter-local-links))
 #+END_SRC
-* Markdown config
-#+BEGIN_SRC emacs-lisp
-(use-package markdown-mode
-  :ensure t
-  :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
-  :init (setq markdown-command "multimarkdown"))
-#+END_SRC
-* Ido mode
-Selecting buffers/files with great efficiency. In my opinion, Ido is enough to replace Ivy and Helm. We install ido-vertical to get a better view of the available options (use C-n, C-p or arrow keys to navigate). Flex matching is a nice touch and we are lucky to have flx-ido for that purpose.
-#+BEGIN_SRC emacs-lisp
-(use-package ido-vertical-mode
-  :ensure t
-  :hook ((after-init . ido-mode)
-         (after-init . ido-vertical-mode))
-  :config
-  (setq ido-everywhere t
-        ido-enable-flex-matching t
-        ido-vertical-define-keys 'C-n-C-p-up-and-down))
-
-(use-package flx-ido :config (flx-ido-mode)
-  :ensure t)
-#+END_SRC
-
-* smex (autocompletion for M-x)
-#+BEGIN_SRC emacs-lisp
-(use-package smex
-  :ensure t
-  :init (smex-initialize)
-  :bind
-  ("M-x" . smex))
-#+END_SRC
 
 * Buffers
 ** kill correct buffer without confirmation
@@ -586,80 +667,7 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
 (setq ibuffer-expert t)
 #+END_SRC
 
-* avy
-I use avy for quick navigation in any buffer.
-#+BEGIN_SRC emacs-lisp
-(use-package avy
-  :ensure t
-  :bind
-  ("M-s" . avy-goto-char))
-#+END_SRC
-* deft
-#+BEGIN_SRC emacs-lisp
-(use-package deft
-  :ensure t)
-(setq deft-extensions '("txt" "tex" "org"))
-(setq deft-directory "~/Nextcloud/org")
-(setq deft-recursive t)
-(global-set-key [f8] 'deft)
-#+END_SRC
-* Switch between windows efficiently
-#+BEGIN_SRC emacs-lisp
-(use-package switch-window
-  :ensure t
-  :config
-  (setq switch-window-input-style 'minibuffer)
-  (setq switch-window-increase 4)
-  (setq switch-window-threshold 2)
-  (setq switch-window-shortcut-style 'qwerty)
-  (setq switch-window-qwerty-shortcuts
-        '("a" "s" "d" "f" "h" "j" "k" "l"))
-  :bind
-  ([remap other-window] . switch-window))
-#+END_SRC
-** window splitting function
-#+BEGIN_SRC emacs-lisp
-(defun split-and-follow-horizontally ()
-  (interactive)
-  (split-window-below)
-  (balance-windows)
-  (other-window 1))
-(global-set-key (kbd "C-x 2") 'split-and-follow-horizontally)
 
-(defun split-and-follow-vertically ()
-  (interactive)
-  (split-window-right)
-  (balance-windows)
-  (other-window 1))
-(global-set-key (kbd "C-x 3") 'split-and-follow-vertically)
-#+END_SRC
-* auto completion
-#+BEGIN_SRC emacs-lisp
-(use-package company
-  :ensure t
-  :init
-  (add-hook 'after-init-hook 'global-company-mode))
-#+END_SRC
-* Mode Line
-** doom-modeline
-#+BEGIN_SRC emacs-lisp
-(use-package doom-modeline
-  :ensure t
-  :defer 0.1
-  :config (doom-modeline-mode))
-
-(use-package fancy-battery
-  :ensure t
-  :after doom-modeline
-  :hook (after-init . fancy-battery-mode))
-
-(use-package solaire-mode
-  :ensure t
-  :custom (solaire-mode-remap-fringe t)
-  :config
-  (solaire-mode-swap-bg)
-  (solaire-global-mode +1))
-#+END_SRC
 * dmenu
 #+BEGIN_SRC emacs-lisp
 (use-package dmenu
