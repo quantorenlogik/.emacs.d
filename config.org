@@ -2,7 +2,7 @@
 #+AUTHOR: Kai Poblocki
 #+DATE: 2019
 
-* Cleaning up the UI and enhance basic defaults
+* UI configuration
 #+BEGIN_SRC emacs-lisp
   (setq frame-title-format '("Emacs") ; nice window title
         ring-bell-function 'ignore       ; minimize distraction
@@ -80,12 +80,12 @@
 (setq auto-save-default nil) ;; stop creating those #autosave# files
 #+END_SRC
 
-** subword
+** Subword
    For camelcase
 #+BEGIN_SRC emacs-lisp
 (global-subword-mode 1)
 #+END_SRC
-** electric pairs
+** Electric pairs
 Automatically generate corresponding brackets
 #+BEGIN_SRC emacs-lisp
 (setq electric-pair-pairs '(
@@ -94,6 +94,15 @@ Automatically generate corresponding brackets
                             (?\{ . ?\})
                             ))
 (electric-pair-mode t)
+#+END_SRC
+** Show matching parentheses
+Reduce the highlight delay (instantly).
+#+BEGIN_SRC emacs-lisp
+(use-package paren
+  :ensure nil
+  :config
+  (setq show-paren-delay 0)
+  (show-paren-mode))
 #+END_SRC
 
 * Functions for improved workflow
@@ -133,6 +142,13 @@ Automatically generate corresponding brackets
           (point-at-bol)
           (point-at-eol)))))
 (global-set-key (kbd "C-c w l") 'copy-whole-line)
+#+END_SRC
+** Fix ^M for mixed line endings (DOS, UNIX)
+#+BEGIN_SRC emacs-lisp
+(defun remove-dos-eol ()
+  (interactive)
+  (setq buffer-display-table (make-display-table))
+  (aset buffer-display-table ?\^M []))
 #+END_SRC
 * Packages
 ** UI
@@ -242,6 +258,23 @@ Automatically generate corresponding brackets
   ;; Set the banner
   (setq dashboard-startup-banner 'logo))
 #+END_SRC
+*** Indent wrapped lines: =adaptive-wrap=
+#+BEGIN_SRC emacs-lisp
+(use-package adaptive-wrap
+  :ensure t
+  :config
+  (progn
+    (setq-default adaptive-wrap-extra-indent 2)
+
+    (defun turn-on-adaptive-wrap-prefix-mode ()
+      "Turns on adaptive-wrap-prefix-mode."
+      (interactive)
+      (adaptive-wrap-prefix-mode 1))
+    (define-globalized-minor-mode global-adaptive-wrap-prefix-mode
+      adaptive-wrap-prefix-mode
+      turn-on-adaptive-wrap-prefix-mode)
+    (global-adaptive-wrap-prefix-mode 1)))
+#+END_SRC
 ** Navigation
 *** Jumping to text (char-based): =avy=
 #+BEGIN_SRC emacs-lisp
@@ -273,6 +306,13 @@ Automatically generate corresponding brackets
   :bind
   ([remap other-window] . switch-window))
 #+END_SRC
+*** dmenu
+#+BEGIN_SRC emacs-lisp
+(use-package dmenu
+  :ensure t
+  :bind
+  ("s-SPC" . dmenu))
+#+END_SRC
 ** Buffers
 *** Selecting buffers/files: =ido-vertical-mode=
     Selecting buffers/files with great efficiency. In my opinion, Ido is enough to replace =Ivy= and =Helm=. We install ido-vertical to get a better view of the available options (use C-n, C-p or arrow keys to navigate). Flex matching is a nice touch and we are lucky to have flx-ido for that purpose.
@@ -290,15 +330,6 @@ Automatically generate corresponding brackets
   :ensure t)
 #+END_SRC
 *** Refresh buffers: =autorevert=
-#+BEGIN_SRC emacs-lisp
-(use-package autorevert
-  :ensure nil
-  :hook (after-init . global-auto-revert-mode)
-  :config
-  (setq auto-revert-interval 2
-        auto-revert-check-vc-info t
-        auto-revert-verbose nil))
-#+END_SRC
 *** Autocompletion: =company=
 #+BEGIN_SRC emacs-lisp
 (use-package company
@@ -323,6 +354,12 @@ Automatically generate corresponding brackets
 (setq deft-recursive t)
 (global-set-key [f8] 'deft)
 #+END_SRC
+*** Clean up whitespace: =whitespace=
+#+BEGIN_SRC emacs-lisp
+(use-package whitespace
+  :ensure nil
+  :config (add-hook 'before-save-hook 'whitespace-cleanup))
+#+END_SRC
 ** Major modes
 *** Markdown: =markdown-mode=
 #+BEGIN_SRC emacs-lisp
@@ -338,7 +375,7 @@ Automatically generate corresponding brackets
 *** Pandoc: =pandoc-mode=
 
 
-* config.org edit/reload keybindings
+* Keybindings
 ** edit config.org
 #+BEGIN_SRC emacs-lisp
 (defun config-open ()
@@ -354,57 +391,39 @@ Automatically generate corresponding brackets
 (global-set-key (kbd "C-c r") 'config-reload)
 #+END_SRC
 
-* Indentation and syntax for code blocks in org-mode
+
+* Buffer configuration
+** kill correct buffer without confirmation
 #+BEGIN_SRC emacs-lisp
-(setq org-src-fontify-natively t
-    org-src-window-setup 'current-window
-    org-src-strip-leading-and-trailing-blank-lines t
-    org-src-preserve-indentation t
-    org-src-tab-acts-natively t)
+(defun kill-curr-buffer ()
+  (interactive)
+  (kill-buffer (current-buffer)))
+(global-set-key (kbd "C-x k") 'kill-curr-buffer)
 #+END_SRC
 
-* Don't bother killing processes and don't let backup~ files scatter around
+** kill all buffers
 #+BEGIN_SRC emacs-lisp
-(use-package files
-  :ensure nil
-  :config
-  (setq confirm-kill-process nil))
+(defun kill-all-buffers ()
+  (interactive)
+  (mapc 'kill-buffer (buffer-list)))
+(global-set-key (kbd "C-M-s-k") 'kill-all-buffers)
 #+END_SRC
 
-
-* Terminal: use bash for ansi-term
+** switch buffer
 #+BEGIN_SRC emacs-lisp
-(defvar my-term-shell "/bin/bash")
-(defadvice ansi-term (before force-bash)
-  (interactive (list my-term-shell)))
-(ad-activate 'ansi-term)
-(global-set-key (kbd "<s-return>") 'ansi-term)
+(global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
 #+END_SRC
-
-
-
-
-* Show matching parentheses
-Reduce the highlight delay (instantly).
+** enable ibuffer
 #+BEGIN_SRC emacs-lisp
-(use-package paren
-  :ensure nil
-  :config
-  (setq show-paren-delay 0)
-  (show-paren-mode))
+(global-set-key (kbd "C-x b") 'ibuffer)
+#+END_SRC
+** export mode for ibuffer
+#+BEGIN_SRC emacs-lisp
+(setq ibuffer-expert t)
 #+END_SRC
 
 
-* Clean up whitespace and unnecessary empty lines on save
-#+BEGIN_SRC emacs-lisp
-(use-package whitespace
-  :ensure nil
-  :config (add-hook 'before-save-hook 'whitespace-cleanup))
-#+END_SRC
-
-
-
-* Org mode modifications
+* Org mode configuration
 ** org-bullets
 #+BEGIN_SRC emacs-lisp
 (use-package org-bullets
@@ -430,7 +449,7 @@ Reduce the highlight delay (instantly).
              '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
 #+END_SRC
 
-** Essential workflow config for project management
+** Workflow config for project management
    https://www.suenkler.info/docs/emacs-orgmode/
    https://www.suenkler.info/notes/emacs-config/
 
@@ -637,48 +656,24 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
   (add-to-list 'org-export-filter-link-functions 'filter-local-links))
 #+END_SRC
 
-* Buffers
-** kill correct buffer without confirmation
-#+BEGIN_SRC emacs-lisp
-(defun kill-curr-buffer ()
-  (interactive)
-  (kill-buffer (current-buffer)))
-(global-set-key (kbd "C-x k") 'kill-curr-buffer)
-#+END_SRC
 
-** kill all buffers
-#+BEGIN_SRC emacs-lisp
-(defun kill-all-buffers ()
-  (interactive)
-  (mapc 'kill-buffer (buffer-list)))
-(global-set-key (kbd "C-M-s-k") 'kill-all-buffers)
-#+END_SRC
 
-** switch buffer
+** Indentation and syntax for code blocks in org-mode
 #+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
-#+END_SRC
-** enable ibuffer
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-x b") 'ibuffer)
-#+END_SRC
-** export mode for ibuffer
-#+BEGIN_SRC emacs-lisp
-(setq ibuffer-expert t)
+(setq org-src-fontify-natively t
+    org-src-window-setup 'current-window
+    org-src-strip-leading-and-trailing-blank-lines t
+    org-src-preserve-indentation nil
+    org-edit-src-content-indentation 0
+    org-src-tab-acts-natively t)
 #+END_SRC
 
 
-* dmenu
+* Terminal: use bash for ansi-term
 #+BEGIN_SRC emacs-lisp
-(use-package dmenu
-  :ensure t
-  :bind
-  ("s-SPC" . dmenu))
-#+END_SRC
-* Fix ^M for mixed line endings (DOS, UNIX)
-#+BEGIN_SRC emacs-lisp
-(defun remove-dos-eol ()
-  (interactive)
-  (setq buffer-display-table (make-display-table))
-  (aset buffer-display-table ?\^M []))
+(defvar my-term-shell "/bin/bash")
+(defadvice ansi-term (before force-bash)
+  (interactive (list my-term-shell)))
+(ad-activate 'ansi-term)
+(global-set-key (kbd "<s-return>") 'ansi-term)
 #+END_SRC
