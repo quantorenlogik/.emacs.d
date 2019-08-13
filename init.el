@@ -34,7 +34,7 @@
     ("a94f1a015878c5f00afab321e4fef124b2fc3b823c8ddd89d360d710fc2bddfc" default)))
  '(package-selected-packages
    (quote
-    (adaptive-wrap deft centaur-tabs solaire-mode fancy-battery doom-modeline all-the-icons htmlize org-download dmenu powerline company files sudo-edit switch-window avy doom-themes which-key use-package)))
+    (olivetti writeroom-mode adaptive-wrap deft centaur-tabs solaire-mode fancy-battery doom-modeline all-the-icons htmlize org-download dmenu powerline company files sudo-edit switch-window avy doom-themes which-key use-package)))
  '(solaire-mode-remap-fringe t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

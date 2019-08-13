@@ -18,9 +18,9 @@
   (scroll-bar-mode -1)
 
   ;; add some padding
-  (add-hook 'window-configuration-change-hook
-          (lambda ()
-            (set-window-margins (car (get-buffer-window-list (current-buffer) nil t)) 2 2)))
+;  (add-hook 'window-configuration-change-hook
+;          (lambda ()
+;            (set-window-margins (car (get-buffer-window-list (current-buffer) nil t)) 2 2)))
 
   ;; remove default startup screen
   (setq inhibit-startup-message t)
@@ -29,7 +29,7 @@
   (global-visual-line-mode t)
 
   ;; highlight selected line (not in terminal)
-  (when window-system (global-hl-line-mode t))
+;  (when window-system (global-hl-line-mode t))
 
   ;; prettify symbols
   (when window-system (global-prettify-symbols-mode t))
@@ -72,7 +72,6 @@
                 window-divider-default-bottom-width 1
                 window-divider-default-right-width 1)
   (add-hook 'doom-init-ui-hook #'window-divider-mode)
-
 #+END_SRC
 ** Disable auto-save and backup files
 #+BEGIN_SRC emacs-lisp
@@ -258,23 +257,6 @@ Reduce the highlight delay (instantly).
   ;; Set the banner
   (setq dashboard-startup-banner 'logo))
 #+END_SRC
-*** Indent wrapped lines: =adaptive-wrap=
-#+BEGIN_SRC emacs-lisp
-(use-package adaptive-wrap
-  :ensure t
-  :config
-  (progn
-    (setq-default adaptive-wrap-extra-indent 2)
-
-    (defun turn-on-adaptive-wrap-prefix-mode ()
-      "Turns on adaptive-wrap-prefix-mode."
-      (interactive)
-      (adaptive-wrap-prefix-mode 1))
-    (define-globalized-minor-mode global-adaptive-wrap-prefix-mode
-      adaptive-wrap-prefix-mode
-      turn-on-adaptive-wrap-prefix-mode)
-    (global-adaptive-wrap-prefix-mode 1)))
-#+END_SRC
 ** Navigation
 *** Jumping to text (char-based): =avy=
 #+BEGIN_SRC emacs-lisp
@@ -373,8 +355,16 @@ Reduce the highlight delay (instantly).
 #+END_SRC
 ** Minor modes
 *** Pandoc: =pandoc-mode=
-
-
+*** Distraction-free writing mode: =writeroom-mode=
+#+BEGIN_SRC emacs-lisp
+(use-package writeroom-mode
+  :ensure t)
+#+END_SRC
+*** Distraction-free writing mode 2: =olivetti=
+#+BEGIN_SRC emacs-lisp
+(use-package olivetti
+  :ensure t)
+#+END_SRC
 * Keybindings
 ** edit config.org
 #+BEGIN_SRC emacs-lisp
@@ -655,11 +645,15 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 
   (add-to-list 'org-export-filter-link-functions 'filter-local-links))
 #+END_SRC
-
-
-
 ** Indentation and syntax for code blocks in org-mode
 #+BEGIN_SRC emacs-lisp
+;; autoindent org files
+(setq org-startup-indented t)
+
+;; pretty latex symbols in org mode
+(setq org-pretty-entities t)
+
+;; optimizing settings
 (setq org-src-fontify-natively t
     org-src-window-setup 'current-window
     org-src-strip-leading-and-trailing-blank-lines t
