@@ -288,12 +288,25 @@ Reduce the highlight delay (instantly).
   :bind
   ([remap other-window] . switch-window))
 #+END_SRC
-*** dmenu
+*** Program launcher: =dmenu=
 #+BEGIN_SRC emacs-lisp
 (use-package dmenu
   :ensure t
   :bind
   ("s-SPC" . dmenu))
+#+END_SRC
+*** Multiple cursors: =multiple-cursors=
+#+BEGIN_SRC emacs-lisp
+(use-package multiple-cursors
+  :ensure t)
+
+;; active region that spans multiple lines, add a cursor to each line
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+
+;; add multiple cursors not based on keywords
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 #+END_SRC
 ** Buffers
 *** Selecting buffers/files: =ido-vertical-mode=
@@ -361,76 +374,34 @@ Reduce the highlight delay (instantly).
   :ensure t)
 #+END_SRC
 *** Distraction-free writing mode 2: =olivetti=
+
 #+BEGIN_SRC emacs-lisp
 (use-package olivetti
   :ensure t)
-#+END_SRC
-* Keybindings
-** edit config.org
-#+BEGIN_SRC emacs-lisp
-(defun config-open ()
-  (interactive)
-  (find-file "~/.emacs.d/config.org"))
-(global-set-key (kbd "C-c e") 'config-open)
-#+END_SRC
-** reload config.org
-#+BEGIN_SRC emacs-lisp
-(defun config-reload ()
-  (interactive)
-  (org-babel-load-file (expand-file-name "~/.emacs.d/config.org")))
-(global-set-key (kbd "C-c r") 'config-reload)
-#+END_SRC
-
-
-* Buffer configuration
-** kill correct buffer without confirmation
-#+BEGIN_SRC emacs-lisp
-(defun kill-curr-buffer ()
-  (interactive)
-  (kill-buffer (current-buffer)))
-(global-set-key (kbd "C-x k") 'kill-curr-buffer)
-#+END_SRC
-
-** kill all buffers
-#+BEGIN_SRC emacs-lisp
-(defun kill-all-buffers ()
-  (interactive)
-  (mapc 'kill-buffer (buffer-list)))
-(global-set-key (kbd "C-M-s-k") 'kill-all-buffers)
-#+END_SRC
-
-** switch buffer
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
-#+END_SRC
-** enable ibuffer
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-x b") 'ibuffer)
-#+END_SRC
-** export mode for ibuffer
-#+BEGIN_SRC emacs-lisp
-(setq ibuffer-expert t)
-#+END_SRC
-
-
+(setq olivetti-set-width 100)
+#+End_SRC
 * Org mode configuration
-** org-bullets
+** UI
+*** org-bullets
 #+BEGIN_SRC emacs-lisp
 (use-package org-bullets
   :ensure t
   :config
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
 #+END_SRC
-
-** remapping some keys
+*** Resize images
 #+BEGIN_SRC emacs-lisp
-  (define-key org-mode-map (kbd "M-C-n") 'org-end-of-item-list)
-  (define-key org-mode-map (kbd "M-C-p") 'org-beginning-of-item-list)
-  (define-key org-mode-map (kbd "M-C-u") 'outline-up-heading)
-  (define-key org-mode-map (kbd "M-C-w") 'org-table-copy-region)
-  (define-key org-mode-map (kbd "M-C-y") 'org-table-paste-rectangle)
+(setq org-image-actual-width nil)
 #+END_SRC
-
+** Encrypting text of an entry
+#+BEGIN_SRC emacs-lisp
+(require 'org-crypt)
+(org-crypt-use-before-save-magic)
+(setq org-tags-exclude-from-inheritance (quote ("crypt")))
+;; GPG key to use for encryption
+;; Either the Key ID or set to nil to use symmetric encryption.
+(setq org-crypt-key "poblocki@posteo.de")
+#+END_SRC
 ** snippet for elisp code insertion
 "<el" for emacs-lisp code block in org mode
 #+BEGIN_SRC emacs-lisp
@@ -451,7 +422,7 @@ Reduce the highlight delay (instantly).
 #+END_SRC
 
 *** org-download
-    Drag and drop images to Emacs org-mode
+Drag and drop images to Emacs org-mode
 #+BEGIN_SRC emacs-lisp
 (use-package org-download
   :ensure t)
@@ -661,6 +632,51 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
     org-edit-src-content-indentation 0
     org-src-tab-acts-natively t)
 #+END_SRC
+* Keybindings
+** edit config.org
+#+BEGIN_SRC emacs-lisp
+(defun config-open ()
+  (interactive)
+  (find-file "~/.emacs.d/config.org"))
+(global-set-key (kbd "C-c e") 'config-open)
+#+END_SRC
+** reload config.org
+#+BEGIN_SRC emacs-lisp
+(defun config-reload ()
+  (interactive)
+  (org-babel-load-file (expand-file-name "~/.emacs.d/config.org")))
+(global-set-key (kbd "C-c r") 'config-reload)
+#+END_SRC
+
+* Buffer configuration
+** kill correct buffer without confirmation
+#+BEGIN_SRC emacs-lisp
+(defun kill-curr-buffer ()
+  (interactive)
+  (kill-buffer (current-buffer)))
+(global-set-key (kbd "C-x k") 'kill-curr-buffer)
+#+END_SRC
+
+** kill all buffers
+#+BEGIN_SRC emacs-lisp
+(defun kill-all-buffers ()
+  (interactive)
+  (mapc 'kill-buffer (buffer-list)))
+(global-set-key (kbd "C-M-s-k") 'kill-all-buffers)
+#+END_SRC
+
+** switch buffer
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
+#+END_SRC
+** enable ibuffer
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-x b") 'ibuffer)
+#+END_SRC
+** export mode for ibuffer
+#+BEGIN_SRC emacs-lisp
+(setq ibuffer-expert t)
+#+END_SRC
 
 
 * Terminal: use bash for ansi-term
@@ -670,4 +686,13 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
   (interactive (list my-term-shell)))
 (ad-activate 'ansi-term)
 (global-set-key (kbd "<s-return>") 'ansi-term)
+#+END_SRC
+
+* Fix ^M
+#+BEGIN_SRC emacs-lisp
+(defun remove-dos-eol ()
+  "Do not show ^M in files containing mixed UNIX and DOS line endings."
+  (interactive)
+  (setq buffer-display-table (make-display-table))
+  (aset buffer-display-table ?\^M []))
 #+END_SRC
