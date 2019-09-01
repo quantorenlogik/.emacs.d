@@ -366,6 +366,19 @@ Reduce the highlight delay (instantly).
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
 #+END_SRC
+*** Latex: =AUCTeX=
+#+BEGIN_SRC emacs-lisp
+(use-package auctex
+  :defer t
+  :ensure t)
+(use-package auctex-latexmk
+  :ensure t)
+(auctex-latexmk-setup)
+
+;; Smart Quotes being not so smart
+(setq TeX-close-quote "}"
+      TeX-open-quote "\\enquote{")
+#+END_SRC
 ** Minor modes
 *** Pandoc: =pandoc-mode=
 *** Distraction-free writing mode: =writeroom-mode=
