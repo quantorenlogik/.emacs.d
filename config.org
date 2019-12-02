@@ -17,10 +17,9 @@
   (menu-bar-mode -1)
   (scroll-bar-mode -1)
 
-  ;; add some padding
-;  (add-hook 'window-configuration-change-hook
-;          (lambda ()
-;            (set-window-margins (car (get-buffer-window-list (current-buffer) nil t)) 2 2)))
+  ;; add some side padding
+  (setq-default left-fringe-width 10)
+  (setq-default right-fringe-width 10)
 
   ;; remove default startup screen
   (setq inhibit-startup-message t)
@@ -78,7 +77,6 @@
 (setq make-backup-files nil) ;; stop creating those backup~ files
 (setq auto-save-default nil) ;; stop creating those #autosave# files
 #+END_SRC
-
 ** Subword
    For camelcase
 #+BEGIN_SRC emacs-lisp
@@ -103,7 +101,6 @@ Reduce the highlight delay (instantly).
   (setq show-paren-delay 0)
   (show-paren-mode))
 #+END_SRC
-
 * Functions for improved workflow
 ** window splitting function
 #+BEGIN_SRC emacs-lisp
@@ -121,7 +118,6 @@ Reduce the highlight delay (instantly).
   (other-window 1))
 (global-set-key (kbd "C-x 3") 'split-and-follow-vertically)
 #+END_SRC
-
 ** kill-whole-word
 #+BEGIN_SRC emacs-lisp
 (defun kill-whole-word ()
@@ -130,7 +126,6 @@ Reduce the highlight delay (instantly).
   (kill-word 1))
 (global-set-key (kbd "C-c w w") 'kill-whole-word)
 #+END_SRC
-
 ** copy-whole-line (like vim)
 #+BEGIN_SRC emacs-lisp
 (defun copy-whole-line ()
@@ -375,6 +370,22 @@ Reduce the highlight delay (instantly).
   :ensure t)
 (auctex-latexmk-setup)
 
+;; enable reftex for citations
+(add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
+(setq reftex-plug-into-auctex t)
+
+;; adding autocite
+(eval-after-load 'reftex-vars
+  '(progn
+     ;; (also some other reftex-related customizations)
+     (setq reftex-cite-format
+           '((?\C-m . "\\cite[]{%l}")
+             (?f . "\\autocite[][]{%l}")
+             (?t . "\\textcite[]{%l}")
+             (?p . "\\parencite[]{%l}")
+             (?o . "\\citepr[]{%l}")
+             (?n . "\\nocite{%l}")))))
+
 ;; Smart Quotes being not so smart
 (setq TeX-close-quote "}"
       TeX-open-quote "\\enquote{")
@@ -387,12 +398,20 @@ Reduce the highlight delay (instantly).
   :ensure t)
 #+END_SRC
 *** Distraction-free writing mode 2: =olivetti=
-
 #+BEGIN_SRC emacs-lisp
 (use-package olivetti
   :ensure t)
 (setq olivetti-set-width 100)
+
+(eval-after-load "olivetti"
+  '(progn (define-key olivetti-mode-map (kbd "C-c [") nil)
+          (define-key olivetti-mode-map (kbd "C-c ]") nil)))
 #+End_SRC
+*** Browse bibliographical references: =biblio=
+#+BEGIN_SRC emacs-lisp
+(use-package biblio
+  :ensure t)
+#+END_SRC
 * Org mode configuration
 ** UI
 *** org-bullets
@@ -422,25 +441,21 @@ Reduce the highlight delay (instantly).
 (add-to-list 'org-structure-template-alist
              '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
 #+END_SRC
-
 ** Workflow config for project management
    https://www.suenkler.info/docs/emacs-orgmode/
    https://www.suenkler.info/notes/emacs-config/
-
 *** Basic setup for agenda-files
 #+BEGIN_SRC emacs-lisp
 (setq org-agenda-files (quote
    ("~/Nextcloud/org/tasks.org"
     "~/Nextcloud/org/notes/")))
 #+END_SRC
-
 *** org-download
 Drag and drop images to Emacs org-mode
 #+BEGIN_SRC emacs-lisp
 (use-package org-download
   :ensure t)
 #+END_SRC
-
 *** Workflow states
 #+BEGIN_SRC emacs-lisp
 ;; "!" = timestamp
@@ -452,7 +467,6 @@ Drag and drop images to Emacs org-mode
 ;; Fast TODO Selection
 (setq org-use-fast-todo-selection t)
 #+END_SRC
-
 *** Logging
 Automatically add timestamp for completing tasks
 #+BEGIN_SRC emacs-lisp
@@ -461,7 +475,6 @@ Automatically add timestamp for completing tasks
 ;; use seperate drawer
 (setq org-log-into-drawer t)
 #+END_SRC
-
 *** Capture
 #+BEGIN_SRC emacs-lisp
 (setq org-capture-templates
@@ -482,7 +495,6 @@ Automatically add timestamp for completing tasks
         ("b" "Bookmark" entry (file+headline "~/Nextcloud/org/notes/bookmarks.org" "Bookmarks")
        "* %?\n:PROPERTIES:\n:CREATED: %U\n:NOTES:%^{Notes}\n:END:\n\n" :empty-lines 1)))
 #+END_SRC
-
 *** Capture links as bookmarks
     Helper function =string-replace=
 #+BEGIN_SRC emacs-lisp
@@ -569,7 +581,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 ;; Org Capture
 (define-key global-map (kbd "C-c c") 'org-capture)
 #+END_SRC
-
 ** Blog publishing config
 #+BEGIN_SRC emacs-lisp
 (use-package htmlize
@@ -631,6 +642,9 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 #+END_SRC
 ** Indentation and syntax for code blocks in org-mode
 #+BEGIN_SRC emacs-lisp
+;; hide empty lines in collapsed tree
+(setq org-cycle-separator-lines 0)
+
 ;; autoindent org files
 (setq org-startup-indented t)
 
@@ -660,7 +674,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
   (org-babel-load-file (expand-file-name "~/.emacs.d/config.org")))
 (global-set-key (kbd "C-c r") 'config-reload)
 #+END_SRC
-
 * Buffer configuration
 ** kill correct buffer without confirmation
 #+BEGIN_SRC emacs-lisp
@@ -669,7 +682,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
   (kill-buffer (current-buffer)))
 (global-set-key (kbd "C-x k") 'kill-curr-buffer)
 #+END_SRC
-
 ** kill all buffers
 #+BEGIN_SRC emacs-lisp
 (defun kill-all-buffers ()
@@ -677,7 +689,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
   (mapc 'kill-buffer (buffer-list)))
 (global-set-key (kbd "C-M-s-k") 'kill-all-buffers)
 #+END_SRC
-
 ** switch buffer
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
@@ -690,8 +701,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 #+BEGIN_SRC emacs-lisp
 (setq ibuffer-expert t)
 #+END_SRC
-
-
 * Terminal: use bash for ansi-term
 #+BEGIN_SRC emacs-lisp
 (defvar my-term-shell "/bin/bash")
@@ -700,7 +709,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 (ad-activate 'ansi-term)
 (global-set-key (kbd "<s-return>") 'ansi-term)
 #+END_SRC
-
 * Fix ^M
 #+BEGIN_SRC emacs-lisp
 (defun remove-dos-eol ()
