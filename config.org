@@ -169,7 +169,6 @@ Reduce the highlight delay (instantly).
 #+BEGIN_SRC emacs-lisp
 ;; load evil
 (use-package evil
-  :diminish undo-tree-mode
   :ensure t ;; install the evil package if not installed
   :init ;; tweak evil's configuration before loading it
   (setq evil-search-module 'evil-search)
@@ -186,7 +185,6 @@ Reduce the highlight delay (instantly).
 
 (use-package evil-commentary
   :after evil
-  :diminish
   :config (evil-commentary-mode +1))
 #+END_SRC
 ** UI
