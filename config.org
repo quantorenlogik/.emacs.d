@@ -322,6 +322,12 @@ By default, the scrolling is way too fast to be precise and helpful, let's tune 
   (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
   (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this))
 #+END_SRC
+*** fuzzy file search: =fzf=
+#+BEGIN_SRC emacs-lisp
+(use-package fzf
+  :defer t
+  :ensure t)
+#+END_SRC
 ** Buffers
 *** Selecting buffers/files: =ido-vertical-mode=
 Selecting buffers/files with great efficiency. In my opinion, Ido is enough to replace =Ivy= and =Helm=. We install ido-vertical to get a better view of the available options (use C-n, C-p or arrow keys to navigate). Flex matching is a nice touch and we are lucky to have flx-ido for that purpose.
@@ -744,6 +750,10 @@ Automatically add timestamp for completing tasks
   (interactive)
   (org-babel-load-file (expand-file-name "~/.emacs.d/config.org")))
 (global-set-key (kbd "C-c r") 'config-reload)
+#+END_SRC
+** fzf
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-c f") 'fzf)
 #+END_SRC
 * Buffer configuration
 ** kill correct buffer without confirmation
