@@ -1,76 +1,92 @@
 #+TITLE: Peronal config.org
 #+AUTHOR: Kai Poblocki
-#+DATE: 2019
+#+DATE: 2020
 
 * UI configuration
+** frame defaults
 #+BEGIN_SRC emacs-lisp
-  (setq frame-title-format '("Emacs") ; nice window title
-        ring-bell-function 'ignore       ; minimize distraction
-        visible-bell nil
-        default-directory "~/")
+(use-package frame
+  :ensure nil
+  :config
+  (setq initial-frame-alist (quote ((fullscreen . maximized))))
+  (when (member "Hack" (font-family-list))
+    (set-frame-font "hack-9:weight=regular" t t)))
+#+END_SRC
+** Dump custom-set-variables to a garbage file and don't load it
+#+BEGIN_SRC emacs-lisp
+(use-package cus-edit
+  :ensure nil
+  :config
+  (setq custom-file "~/.emacs.d/to-be-dumped.el"))
+#+END_SRC
+** random UI config
+#+BEGIN_SRC emacs-lisp
+(setq frame-title-format '("Emacs") ; nice window title
+      ring-bell-function 'ignore       ; minimize distraction
+      visible-bell nil
+      default-directory "~/")
 
-  ;; UTF-8 as default
-  (set-language-environment "UTF-8")
+;; set padding around all sides
+(set-frame-parameter nil 'internal-border-width 10)
 
-  ;; literally every YouTube tutorial starts with this
-  (tool-bar-mode -1)
-  (menu-bar-mode -1)
-  (scroll-bar-mode -1)
+;; UTF-8 as default
+(set-language-environment "UTF-8")
 
-  ;; add some side padding
-  (setq-default left-fringe-width 10)
-  (setq-default right-fringe-width 10)
+;; literally every YouTube tutorial starts with this
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
 
-  ;; remove default startup screen
-  (setq inhibit-startup-message t)
+;; remove default startup screen
+(setq inhibit-startup-message t)
 
-  ;; enable word wrap
-  (global-visual-line-mode t)
+;; enable word wrap
+(global-visual-line-mode t)
 
-  ;; highlight selected line (not in terminal)
-;  (when window-system (global-hl-line-mode t))
+;; highlight selected line (not in terminal)
+(when window-system (global-hl-line-mode t))
 
-  ;; prettify symbols
-  (when window-system (global-prettify-symbols-mode t))
+;; prettify symbols
+(when window-system (global-prettify-symbols-mode t))
 
-  ;; replace the active region just by typing text, just like modern editors
-  (delete-selection-mode +1)
+;; replace the active region just by typing text, just like modern editors
+(delete-selection-mode +1)
 
-  ;; show column number in mode-line
-  (column-number-mode +1)
+;; show column number in mode-line
+(column-number-mode +1)
 
-  ;; better scrolling experience
-  (setq scroll-margin 0
-        scroll-conservatively 100
-        scroll-preserve-screen-position t
-        auto-window-vscroll nil)
+;; better scrolling experience
+(setq scroll-margin 0
+      scroll-conservatively 100
+      scroll-preserve-screen-position t
+      auto-window-vscroll nil)
 
-  ;; increase line space for better readability
-  (setq-default line-spacing 3)
+;; increase line space for better readability
+(setq-default line-spacing 3)
 
-  ;; shorten yes-or-no-dialog
-  (defalias 'yes-or-no-p 'y-or-n-p)
+;; shorten yes-or-no-dialog
+(defalias 'yes-or-no-p 'y-or-n-p)
 
-  ;; Always use spaces for indentation (default to 4 spaces).
-  (setq-default indent-tabs-mode nil
-                tab-width 4)
+;; Always use spaces for indentation (default to 4 spaces).
+(setq-default indent-tabs-mode nil
+              tab-width 4)
 
-  ;; visual improvements for tags in org mode
-  (setq org-tags-column -80)
+;; visual improvements for tags in org mode
+(setq org-tags-column -80)
 
-  ;; show lines and columns on the modeline
-  (line-number-mode 1)
-  (column-number-mode 1)
+;; show lines and columns on the modeline
+(line-number-mode 1)
+(column-number-mode 1)
 
-  ;; disable blinking cursor
-  (blink-cursor-mode -1)
+;; disable blinking cursor
+(blink-cursor-mode -1)
 
-  ;; The native border "consumes" a pixel of the fringe on righter-most splits,
-  ;; `window-divider' does not. Available since Emacs 25.1.
-  (setq-default window-divider-default-places t
-                window-divider-default-bottom-width 1
-                window-divider-default-right-width 1)
-  (add-hook 'doom-init-ui-hook #'window-divider-mode)
+;; The native border "consumes" a pixel of the fringe on righter-most splits,
+;; `window-divider' does not. Available since Emacs 25.1.
+(setq-default window-divider-default-places t
+              window-divider-default-bottom-width 1
+              window-divider-default-right-width 1)
+(add-hook 'doom-init-ui-hook #'window-divider-mode)
 #+END_SRC
 ** Disable auto-save and backup files
 #+BEGIN_SRC emacs-lisp
@@ -78,7 +94,7 @@
 (setq auto-save-default nil) ;; stop creating those #autosave# files
 #+END_SRC
 ** Subword
-   For camelcase
+For camelcase
 #+BEGIN_SRC emacs-lisp
 (global-subword-mode 1)
 #+END_SRC
@@ -144,11 +160,16 @@ Reduce the highlight delay (instantly).
   (setq buffer-display-table (make-display-table))
   (aset buffer-display-table ?\^M []))
 #+END_SRC
+** auto-revert
+#+BEGIN_SRC emacs-lisp
+(global-auto-revert-mode t)
+#+END_SRC
 * Packages
 ** Extensible vi layer: =EVIL=
 #+BEGIN_SRC emacs-lisp
 ;; load evil
 (use-package evil
+  :diminish undo-tree-mode
   :ensure t ;; install the evil package if not installed
   :init ;; tweak evil's configuration before loading it
   (setq evil-search-module 'evil-search)
@@ -162,6 +183,11 @@ Reduce the highlight delay (instantly).
 
   ;; example how to map a command in normal mode (called 'normal state' in evil)
   (define-key evil-normal-state-map (kbd ", w") 'evil-window-vsplit))
+
+(use-package evil-commentary
+  :after evil
+  :diminish
+  :config (evil-commentary-mode +1))
 #+END_SRC
 ** UI
 *** Display preview for key bindings: =which-key=
@@ -226,39 +252,6 @@ Reduce the highlight delay (instantly).
 (use-package all-the-icons
   :ensure t)
 #+END_SRC
-*** Tabs: =centaur-tabs=
-#+BEGIN_SRC emacs-lisp
-(use-package centaur-tabs
-  :ensure t
-  :demand
-  :config
-  (centaur-tabs-mode t)
-  :bind
-  ("C-<prior>" . centaur-tabs-backward)
-  ("C-<next>" . centaur-tabs-forward))
-
-;; You can make the headline face match the centaur-tabs-default face. This makes the tabbar have an uniform appearance.
-;(centaur-tabs-headline-match)
-
-;; Tab Styles
-(setq centaur-tabs-style "bar")
-
-;; Tab height
-(setq centaur-tabs-height 32)
-
-;; Tab icons
-(setq centaur-tabs-set-icons t)
-
-;; Graying out unselected icons
-(setq centaur-tabs-gray-out-icons 'buffer)
-
-;; Display colored bar at the left of selected tab
-(setq centaur-tabs-set-bar 'left)
-
-;; Display a marker indicating that a buffer has been modified (atom-style)
-(setq centaur-tabs-set-modified-marker t)
-(setq centaur-tabs-modified-marker "*")
-#+END_SRC
 *** Dashboard: =dashboard=
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
@@ -270,6 +263,13 @@ Reduce the highlight delay (instantly).
   ;; Set the banner
   (setq dashboard-startup-banner 'logo))
 #+END_SRC
+*** Emojis: =emojify=
+#+BEGIN_SRC emacs-lisp
+(use-package emojify
+  :ensure t
+  :config
+  (add-hook 'after-init-hook 'global-emojify-mode))
+#+END_SRC
 ** Navigation
 *** Jumping to text (char-based): =avy=
 #+BEGIN_SRC emacs-lisp
@@ -278,14 +278,14 @@ Reduce the highlight delay (instantly).
   :bind
   ("M-s" . avy-goto-char))
 #+END_SRC
-*** Multiple cursors: =multiple-cursors=
 *** Mouse wheel configuration: =mwheel=
-    By default, the scrolling is way too fast to be precise and helpful, let's tune it down a little bit.
+By default, the scrolling is way too fast to be precise and helpful, let's tune it down a little bit.
 #+BEGIN_SRC emacs-lisp
 (use-package mwheel
   :ensure nil
-  :config (setq mouse-wheel-scroll-amount '(3 ((shift) . 3))
-                mouse-wheel-progressive-speed nil))
+  :config
+  (setq mouse-wheel-scroll-amount '(3 ((shift) . 3))
+        mouse-wheel-progressive-speed nil))
 #+END_SRC
 *** Switch windows efficiently: =switch-window=
 #+BEGIN_SRC emacs-lisp
@@ -311,19 +311,20 @@ Reduce the highlight delay (instantly).
 *** Multiple cursors: =multiple-cursors=
 #+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
-  :ensure t)
+  :ensure t
+  :config
 
-;; active region that spans multiple lines, add a cursor to each line
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+  ;; active region that spans multiple lines, add a cursor to each line
+  (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
 
-;; add multiple cursors not based on keywords
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+  ;; add multiple cursors not based on keywords
+  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this))
 #+END_SRC
 ** Buffers
 *** Selecting buffers/files: =ido-vertical-mode=
-    Selecting buffers/files with great efficiency. In my opinion, Ido is enough to replace =Ivy= and =Helm=. We install ido-vertical to get a better view of the available options (use C-n, C-p or arrow keys to navigate). Flex matching is a nice touch and we are lucky to have flx-ido for that purpose.
+Selecting buffers/files with great efficiency. In my opinion, Ido is enough to replace =Ivy= and =Helm=. We install ido-vertical to get a better view of the available options (use C-n, C-p or arrow keys to navigate). Flex matching is a nice touch and we are lucky to have flx-ido for that purpose.
 #+BEGIN_SRC emacs-lisp
 (use-package ido-vertical-mode
   :ensure t
@@ -337,14 +338,6 @@ Reduce the highlight delay (instantly).
 (use-package flx-ido :config (flx-ido-mode)
   :ensure t)
 #+END_SRC
-*** Refresh buffers: =autorevert=
-*** Autocompletion: =company=
-#+BEGIN_SRC emacs-lisp
-(use-package company
-  :ensure t
-  :init
-  (add-hook 'after-init-hook 'global-company-mode))
-#+END_SRC
 *** Editing as super user (GNU/Linux): =sudo-edit=
     Edit file as root (Linux specific)
 #+BEGIN_SRC emacs-lisp
@@ -355,20 +348,36 @@ Reduce the highlight delay (instantly).
 *** Searching files: =deft=
 #+BEGIN_SRC emacs-lisp
 (use-package deft
-  :ensure t)
-
-(setq deft-extensions '("txt" "tex" "org"))
-(setq deft-directory "~/Nextcloud/org")
-(setq deft-recursive t)
-(global-set-key [f8] 'deft)
+  :ensure t
+  :config
+  (setq deft-extensions '("txt" "tex" "org"))
+  (setq deft-directory "~/Nextcloud/org")
+  (setq deft-recursive t)
+  (global-set-key [f8] 'deft))
 #+END_SRC
 *** Clean up whitespace: =whitespace=
 #+BEGIN_SRC emacs-lisp
 (use-package whitespace
   :ensure nil
-  :config (add-hook 'before-save-hook 'whitespace-cleanup))
+  :config
+  (add-hook 'before-save-hook 'whitespace-cleanup))
 #+END_SRC
 ** Major modes
+*** Python: =Elpy=
+#+BEGIN_SRC emacs-lisp
+(use-package elpy
+  :ensure t
+  :init
+  (elpy-enable)
+  :config
+  (setq python-shell-interpreter "ipython"
+        python-shell-interpreter-args "--pylab=osx --pdb --nosep --classic"
+        python-shell-prompt-regexp ">>> "
+        python-shell-prompt-output-regexp ""
+        python-shell-completion-setup-code "from IPython.core.completerlib import module_completion"
+        python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n"
+        python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
+#+END_SRC
 *** Markdown: =markdown-mode=
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
@@ -383,54 +392,207 @@ Reduce the highlight delay (instantly).
 #+BEGIN_SRC emacs-lisp
 (use-package auctex
   :defer t
-  :ensure t)
+  :ensure t
+  :config
+
+  ;; enable reftex for citations
+  (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
+  (setq reftex-plug-into-auctex t)
+
+  ;; Default RefTeX bibliography
+  (setq reftex-default-bibliography '("~/Nextcloud/Universität/Masterarbeit/latex/thesis_1/MA.bib"))
+
+  ;; Smart Quotes being not so smart
+  (setq TeX-close-quote "}"
+        TeX-open-quote "\\enquote{"))
+
 (use-package auctex-latexmk
+  :defer t
+  :ensure t
+  :config
+  (auctex-latexmk-setup))
+#+END_SRC
+*** JSON-Mode: =json-mode=
+#+BEGIN_SRC emacs-lisp
+(use-package json-mode
+  :defer t
   :ensure t)
-(auctex-latexmk-setup)
-
-;; enable reftex for citations
-(add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
-(setq reftex-plug-into-auctex t)
-
-;; adding autocite
-(eval-after-load 'reftex-vars
-  '(progn
-     ;; (also some other reftex-related customizations)
-     (setq reftex-cite-format
-           '((?\C-m . "\\cite[]{%l}")
-             (?f . "\\autocite[][]{%l}")
-             (?t . "\\textcite[]{%l}")
-             (?p . "\\parencite[]{%l}")
-             (?o . "\\citepr[]{%l}")
-             (?n . "\\nocite{%l}")))))
-
-;; Smart Quotes being not so smart
-(setq TeX-close-quote "}"
-      TeX-open-quote "\\enquote{")
 #+END_SRC
 ** Minor modes
-*** Pandoc: =pandoc-mode=
-*** Distraction-free writing mode: =writeroom-mode=
-#+BEGIN_SRC emacs-lisp
-(use-package writeroom-mode
-  :ensure t)
-#+END_SRC
 *** Distraction-free writing mode 2: =olivetti=
 #+BEGIN_SRC emacs-lisp
 (use-package olivetti
-  :ensure t)
-(setq olivetti-set-width 100)
-
-(eval-after-load "olivetti"
-  '(progn (define-key olivetti-mode-map (kbd "C-c [") nil)
-          (define-key olivetti-mode-map (kbd "C-c ]") nil)))
+  :defer t
+  :ensure t
+  :config
+  (setq olivetti-set-width 100)
+  (eval-after-load "olivetti"
+    '(progn (define-key olivetti-mode-map (kbd "C-c [") nil)
+            (define-key olivetti-mode-map (kbd "C-c ]") nil))))
 #+End_SRC
 *** Browse bibliographical references: =biblio=
 #+BEGIN_SRC emacs-lisp
 (use-package biblio
+  :defer t
   :ensure t)
 #+END_SRC
-* Org mode configuration
+** Emails: =mu4e=
+#+BEGIN_SRC emacs-lisp
+(use-package org-mime
+  :defer t
+  :ensure t)
+
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e/")
+(require 'mu4e)
+
+; get mail
+(setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/mu4e/.mbsyncrc -a"
+  ;; using the default mu4e-shr2text
+  ;; mu4e-html2text-command "w3m -T text/html"
+  mu4e-view-prefer-html t
+  mu4e-update-interval 180
+  mu4e-headers-auto-update t
+  mu4e-compose-signature-auto-include nil
+  mu4e-compose-format-flowed t)
+
+;; to view selected message in the browser, no signin, just html mail
+(add-to-list 'mu4e-view-actions
+  '("ViewInBrowser" . mu4e-action-view-in-browser) t)
+
+;; enable inline images
+(setq mu4e-view-show-images t)
+;; use imagemagick, if available
+(when (fboundp 'imagemagick-register-types)
+  (imagemagick-register-types))
+
+;; every new email composition gets its own frame!
+(setq mu4e-compose-in-new-frame t)
+
+;; don't save message to Sent Messages, IMAP takes care of this
+(setq mu4e-sent-messages-behavior 'delete)
+
+(add-hook 'mu4e-view-mode-hook #'visual-line-mode)
+
+;; <tab> to navigate to links, <RET> to open them in browser
+(add-hook 'mu4e-view-mode-hook
+  (lambda()
+;; try to emulate some of the eww key-bindings
+(local-set-key (kbd "<RET>") 'mu4e~view-browse-url-from-binding)
+(local-set-key (kbd "<tab>") 'shr-next-link)
+(local-set-key (kbd "<backtab>") 'shr-previous-link)))
+
+;; from https://www.reddit.com/r/emacs/comments/bfsck6/mu4e_for_dummies/elgoumx
+(add-hook 'mu4e-headers-mode-hook
+      (defun my/mu4e-change-headers ()
+    (interactive)
+    (setq mu4e-headers-fields
+          `((:human-date . 25) ;; alternatively, use :date
+        (:flags . 6)
+        (:from . 22)
+        (:thread-subject . ,(- (window-body-width) 70)) ;; alternatively, use :subject
+        (:size . 7)))))
+
+;; if you use date instead of human-date in the above, use this setting
+;; give me ISO(ish) format date-time stamps in the header list
+;(setq mu4e-headers-date-format "%Y-%m-%d %H:%M")
+
+;; spell check
+(add-hook 'mu4e-compose-mode-hook
+    (defun my-do-compose-stuff ()
+       "My settings for message composition."
+       (visual-line-mode)
+       (org-mu4e-compose-org-mode)
+           (use-hard-newlines -1)
+       (flyspell-mode)))
+
+(require 'smtpmail)
+
+;;rename files when moving
+;;NEEDED FOR MBSYNC
+(setq mu4e-change-filenames-when-moving t)
+
+;;set up queue for offline email
+;;use mu mkdir ~/Maildir/acc/queue to set up first
+(setq smtpmail-queue-mail nil)  ;; start in normal mode
+
+;;from the info manual
+(setq mu4e-attachment-dir  "~/Downloads")
+
+(setq message-kill-buffer-on-exit t)
+(setq mu4e-compose-dont-reply-to-self t)
+
+(require 'org-mu4e)
+
+;; convert org mode to HTML automatically
+(setq org-mu4e-convert-to-html t)
+
+;;from vxlabs config
+;; show full addresses in view message (instead of just names)
+;; toggle per name with M-RET
+(setq mu4e-view-show-addresses 't)
+
+;; don't ask when quitting
+(setq mu4e-confirm-quit nil)
+
+;; mu4e-context
+(setq mu4e-context-policy 'pick-first)
+(setq mu4e-compose-context-policy 'always-ask)
+(setq mu4e-contexts
+  (list
+   (make-mu4e-context
+    :name "gmail" ;;for poblocki.kai-gmail
+    :enter-func (lambda () (mu4e-message "Entering context work"))
+    :leave-func (lambda () (mu4e-message "Leaving context work"))
+    :match-func (lambda (msg)
+          (when msg
+        (mu4e-message-contact-field-matches
+         msg '(:from :to :cc :bcc) "poblocki.kai@gmail.com")))
+    :vars '((user-mail-address . "poblocki.kai@gmail.com")
+        (user-full-name . "Kai Poblocki")
+        (mu4e-sent-folder . "/poblocki.kai-gmail/[poblocki.kai].Gesendet")
+        (mu4e-drafts-folder . "/poblocki.kai-gmail/[poblocki.kai].drafts")
+        (mu4e-trash-folder . "/poblocki.kai-gmail/[poblocki.kai].Papierkorb")
+        (mu4e-compose-signature . (concat "Formal Signature\n" "Emacs 25, org-mode 9, mu4e 1.0\n"))
+        (mu4e-compose-format-flowed . t)
+        (smtpmail-queue-dir . "~/Maildir/poblocki.kai-gmail/queue/cur")
+        (message-send-mail-function . smtpmail-send-it)
+        (smtpmail-smtp-user . "poblocki.kai")
+        (smtpmail-starttls-credentials . (("smtp.gmail.com" 587 nil nil)))
+        (smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
+        (smtpmail-default-smtp-server . "smtp.gmail.com")
+        (smtpmail-smtp-server . "smtp.gmail.com")
+        (smtpmail-smtp-service . 587)
+        (smtpmail-debug-info . t)
+        (smtpmail-debug-verbose . t)
+                    ))
+   (make-mu4e-context
+    :name "posteo" ;;for poblocki-posteo
+    :enter-func (lambda () (mu4e-message "Entering context work"))
+    :leave-func (lambda () (mu4e-message "Leaving context work"))
+    :match-func (lambda (msg)
+          (when msg
+        (mu4e-message-contact-field-matches
+         msg '(:from :to :cc :bcc) "poblocki@posteo.de")))
+    :vars '((user-mail-address . "poblocki@posteo.de")
+        (user-full-name . "Kai Poblocki")
+        (mu4e-sent-folder . "/poblocki-posteo/[poblocki].Sent")
+        (mu4e-drafts-folder . "/poblocki-posteo/[poblocki].Drafts")
+        (mu4e-trash-folder . "/poblocki-posteo/[poblocki].Trash")
+        (mu4e-compose-signature . (concat "Formal Signature\n" "Emacs 25, org-mode 9, mu4e 1.0\n"))
+        (mu4e-compose-format-flowed . t)
+        (smtpmail-queue-dir . "~/Maildir/poblocki-posteo/queue/cur")
+        (message-send-mail-function . smtpmail-send-it)
+        (smtpmail-smtp-user . "poblocki@posteo.de")
+        (smtpmail-starttls-credentials . (("posteo.de" 587 nil nil)))
+        (smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
+        (smtpmail-default-smtp-server . "posteo.de")
+        (smtpmail-smtp-server . "posteo.de")
+        (smtpmail-smtp-service . 587)
+        (smtpmail-debug-info . t)
+        (smtpmail-debug-verbose . t)
+        ))))
+#+END_SRC
+* Org mode config
 ** UI
 *** org-bullets
 #+BEGIN_SRC emacs-lisp
@@ -450,18 +612,31 @@ Reduce the highlight delay (instantly).
 (setq org-tags-exclude-from-inheritance (quote ("crypt")))
 ;; GPG key to use for encryption
 ;; Either the Key ID or set to nil to use symmetric encryption.
-(setq org-crypt-key "poblocki@posteo.de")
+(setq org-crypt-key nil)
 #+END_SRC
-** snippet for elisp code insertion
-"<el" for emacs-lisp code block in org mode
+** org-journal
+#+BEGIN_SRC emacs-lisp
+(use-package org-journal
+  :ensure t
+  :defer t
+  :custom
+  (org-journal-file-type 'yearly)
+  (org-journal-dir "~/Nextcloud/org/journal/")
+  (org-journal-date-format "%A, %d %B %Y"))
+#+END_SRC
+** snippets code insertion
+shortcuts for code blocks in org mode
 #+BEGIN_SRC emacs-lisp
 (setq org-src-window-setup 'current-window)
 (add-to-list 'org-structure-template-alist
              '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
+(add-to-list 'org-structure-template-alist
+             '("py" "#+BEGIN_SRC python :results output\n?\n#+END_SRC"))
+(setq org-confirm-babel-evaluate nil)
 #+END_SRC
 ** Workflow config for project management
-   https://www.suenkler.info/docs/emacs-orgmode/
-   https://www.suenkler.info/notes/emacs-config/
+https://www.suenkler.info/docs/emacs-orgmode/
+https://www.suenkler.info/notes/emacs-config/
 *** Basic setup for agenda-files
 #+BEGIN_SRC emacs-lisp
 (setq org-agenda-files (quote
@@ -513,75 +688,6 @@ Automatically add timestamp for completing tasks
         ("b" "Bookmark" entry (file+headline "~/Nextcloud/org/notes/bookmarks.org" "Bookmarks")
        "* %?\n:PROPERTIES:\n:CREATED: %U\n:NOTES:%^{Notes}\n:END:\n\n" :empty-lines 1)))
 #+END_SRC
-*** Capture links as bookmarks
-    Helper function =string-replace=
-#+BEGIN_SRC emacs-lisp
-(defun string-replace (this withthat in)
-  "replace THIS with WITHTHAT' in the string IN"
-  (with-temp-buffer
-    (insert in)
-    (goto-char (point-min))
-    (replace-string this withthat)
-    (buffer-substring (point-min) (point-max))))
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-  (defun my-www-get-page-title (url)
-    "retrieve title of web page.
-from: http://www.opensubscriber.com/message/help-gnu-emacs@gnu.org/14332449.html"
-    (let ((title))
-      (with-current-buffer (url-retrieve-synchronously url)
-    (goto-char (point-min))
-    (re-search-forward "<title>\\([^<]*\\)</title>" nil t 1)
-    (setq title (match-string 1))
-    (goto-char (point-min))
-    (re-search-forward "charset=\\([-0-9a-zA-Z]*\\)" nil t 1)
-        (string-replace "&nbsp;" " "
-                        ;;(decode-coding-string title (intern (match-string 1)))
-                        ;; following line fixes charset issues from
-                        ;; previous line:
-                        (decode-coding-string title 'utf-8)
-                        ))
-      )
-    )
-
-
-  (defun my-url-linkify ()
-    "Make URL at cursor point into an Org-mode link.
-If there's a text selection, use the text selection as input.
-
-Example: http://example.com/xyz.htm
-becomes
-\[\[http://example.com/xyz.htm\]\[Source example.com\]\]
-
-Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
-    (interactive)
-    (let (resultLinkStr bds p1 p2 domainName)
-      ;; get the boundary of URL or text selection
-      (if (region-active-p)
-      (setq bds (cons (region-beginning) (region-end)) )
-    (setq bds (bounds-of-thing-at-point 'url))
-    )
-      ;; set URL
-      (setq p1 (car bds))
-      (setq p2 (cdr bds))
-      (let (
-        (url (buffer-substring-no-properties p1 p2))
-        )
-    ;; retrieve title
-    (let ((title (my-www-get-page-title url)))
-      (message (concat "title is: " title))
-      ;;(setq url (replace-regexp-in-string "&" "&amp;" url))
-      (let ((resultLinkStr (concat "[[" url "][" title "]]")))
-        ;; delete url and insert the link
-        (delete-region p1 p2)
-        (insert resultLinkStr)
-        )
-      )
-    )
-      )
-    )
-#+END_SRC
 *** keybindings
 #+BEGIN_SRC emacs-lisp
 ;; Tasks-Datei auf C-c g
@@ -599,65 +705,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 ;; Org Capture
 (define-key global-map (kbd "C-c c") 'org-capture)
 #+END_SRC
-** Blog publishing config
-#+BEGIN_SRC emacs-lisp
-(use-package htmlize
-  :ensure t)
-
-(use-package ox-publish
-  :init
-  (setq my-blog-header-file "~/Nextcloud/org/blog/partials/header.html"
-        my-blog-footer-file "~/Nextcloud/org/blog/partials/footer.html"
-        org-html-validation-link nil)
-
-  ;; Load partials on memory
-  (defun my-blog-header (arg)
-    (with-temp-buffer
-      (insert-file-contents my-blog-header-file)
-      (buffer-string)))
-
-  (defun my-blog-footer (arg)
-    (with-temp-buffer
-      (insert-file-contents my-blog-footer-file)
-      (buffer-string)))
-
-  (defun filter-local-links (link backend info)
-    "Filter that converts all the /index.html links to /"
-    (if (org-export-derived-backend-p backend 'html)
-        (replace-regexp-in-string "/index.html" "/" link)))
-
-  :config
-  (setq org-publish-project-alist
-        '(;; Publish the posts
-          ("blog-notes"
-           :base-directory "~/Nextcloud/org/blog"
-           :base-extension "org"
-           :publishing-directory "~/Nextcloud/org/blog/public"
-           :recursive t
-           :publishing-function org-html-publish-to-html
-           :headline-levels 4
-           :section-numbers nil
-           :html-head nil
-           :html-head-include-default-style nil
-           :html-head-include-scripts nil
-           :html-preamble my-blog-header
-           :html-postamble my-blog-footer
-           )
-
-          ;; For static files that should remain untouched
-          ("blog-static"
-           :base-directory "~/Nextcloud/org/blog"
-           :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|eot\\|svg\\|woff\\|woff2\\|ttf"
-           :publishing-directory "~/Nextcloud/org/blog/public"
-           :recursive t
-           :publishing-function org-publish-attachment
-           )
-
-          ;; Combine the two previous components in a single one
-          ("blog" :components ("blog-notes" "blog-static"))))
-
-  (add-to-list 'org-export-filter-link-functions 'filter-local-links))
-#+END_SRC
 ** Indentation and syntax for code blocks in org-mode
 #+BEGIN_SRC emacs-lisp
 ;; hide empty lines in collapsed tree
@@ -671,19 +718,25 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
 
 ;; optimizing settings
 (setq org-src-fontify-natively t
-    org-src-window-setup 'current-window
-    org-src-strip-leading-and-trailing-blank-lines t
-    org-src-preserve-indentation nil
-    org-edit-src-content-indentation 0
-    org-src-tab-acts-natively t)
+      org-src-window-setup 'current-window
+      org-src-strip-leading-and-trailing-blank-lines t
+      org-src-preserve-indentation nil       org-edit-src-content-indentation 0
+      org-src-tab-acts-natively t)
 #+END_SRC
 * Keybindings
-** edit config.org
+** keybinds for common files
 #+BEGIN_SRC emacs-lisp
+;; config.org
 (defun config-open ()
   (interactive)
   (find-file "~/.emacs.d/config.org"))
 (global-set-key (kbd "C-c e") 'config-open)
+
+;; qnotes.org
+(defun qnotes-open ()
+  (interactive)
+  (find-file "~/Nextcloud/org/qnotes.org"))
+(global-set-key (kbd "C-c q") 'qnotes-open)
 #+END_SRC
 ** reload config.org
 #+BEGIN_SRC emacs-lisp
@@ -699,13 +752,6 @@ Adapted code from: http://ergoemacs.org/emacs/elisp_html-linkify.html"
   (interactive)
   (kill-buffer (current-buffer)))
 (global-set-key (kbd "C-x k") 'kill-curr-buffer)
-#+END_SRC
-** kill all buffers
-#+BEGIN_SRC emacs-lisp
-(defun kill-all-buffers ()
-  (interactive)
-  (mapc 'kill-buffer (buffer-list)))
-(global-set-key (kbd "C-M-s-k") 'kill-all-buffers)
 #+END_SRC
 ** switch buffer
 #+BEGIN_SRC emacs-lisp
