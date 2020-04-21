@@ -9,8 +9,7 @@
   :ensure nil
   :config
   (setq initial-frame-alist (quote ((fullscreen . maximized))))
-  (when (member "Hack" (font-family-list))
-    (set-frame-font "hack-9:weight=regular" t t)))
+  (set-frame-font "DejaVu Sans Mono-9" nil t))
 #+END_SRC
 ** Dump custom-set-variables to a garbage file and don't load it
 #+BEGIN_SRC emacs-lisp
@@ -27,7 +26,7 @@
       default-directory "~/")
 
 ;; set padding around all sides
-(set-frame-parameter nil 'internal-border-width 10)
+;(set-frame-parameter nil 'internal-border-width 10)
 
 ;; UTF-8 as default
 (set-language-environment "UTF-8")
@@ -44,7 +43,7 @@
 (global-visual-line-mode t)
 
 ;; highlight selected line (not in terminal)
-(when window-system (global-hl-line-mode t))
+; (when window-system (global-hl-line-mode t))
 
 ;; prettify symbols
 (when window-system (global-prettify-symbols-mode t))
@@ -197,26 +196,18 @@ Reduce the highlight delay (instantly).
 #+END_SRC
 *** Theme: =doom-themes=
 #+BEGIN_SRC emacs-lisp
-(require 'doom-themes)
+(use-package doom-themes
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-nord t)
 
-;; Global settings (defaults)
-(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-      doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  ;; Enable flashing mode-line on errors
+  ; (doom-themes-visual-bell-config)
 
-;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
-;; may have their own settings.
-(load-theme 'doom-nord t)
-
-;; Enable flashing mode-line on errors
-;(doom-themes-visual-bell-config)
-
-;; Enable custom neotree theme (all-the-icons must be installed!)
-;(doom-themes-neotree-config)
-;; or for treemacs users
-;(doom-themes-treemacs-config)
-
-;; Corrects (and improves) org-mode's native fontification.
-(doom-themes-org-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 #+END_SRC
 *** Modeline: =doom-modeline=
 #+BEGIN_SRC emacs-lisp
@@ -256,17 +247,15 @@ Reduce the highlight delay (instantly).
   :ensure t
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-items '((recents . 10)))
-  (setq dashboard-banner-logo-title "Moin.")
+  (setq dashboard-set-navigator t)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-items '(
+                          (bookmarks . 5)
+                          (agenda . 5)))
+  (setq dashboard-banner-logo-title "Ex nihilo nihil fit.")
   ;; Set the banner
   (setq dashboard-startup-banner 'logo))
-#+END_SRC
-*** Emojis: =emojify=
-#+BEGIN_SRC emacs-lisp
-(use-package emojify
-  :ensure t
-  :config
-  (add-hook 'after-init-hook 'global-emojify-mode))
 #+END_SRC
 ** Navigation
 *** Jumping to text (char-based): =avy=
@@ -401,6 +390,7 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
 
   ;; enable reftex for citations
   (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
+  (add-hook 'LaTeX-mode-hook 'outline-minor-mode)
   (setq reftex-plug-into-auctex t)
 
   ;; Default RefTeX bibliography
@@ -420,6 +410,11 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
 #+BEGIN_SRC emacs-lisp
 (use-package json-mode
   :defer t
+  :ensure t)
+#+END_SRC
+*** Calendar: =calfw=
+#+BEGIN_SRC emacs-lisp
+(use-package calfw
   :ensure t)
 #+END_SRC
 ** Minor modes
@@ -587,7 +582,7 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
         (smtpmail-queue-dir . "~/Maildir/poblocki-posteo/queue/cur")
         (message-send-mail-function . smtpmail-send-it)
         (smtpmail-smtp-user . "poblocki@posteo.de")
-        (smtpmail-starttls-credentials . (("posteo.de" 587 nil nil)))
+        (smtpmail-starttls-credentials . (("posteo.de" 993 nil nil)))
         (smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
         (smtpmail-default-smtp-server . "posteo.de")
         (smtpmail-smtp-server . "posteo.de")
@@ -644,8 +639,8 @@ https://www.suenkler.info/notes/emacs-config/
 *** Basic setup for agenda-files
 #+BEGIN_SRC emacs-lisp
 (setq org-agenda-files (quote
-   ("~/Nextcloud/org/tasks.org"
-    "~/Nextcloud/org/notes/")))
+   ("~/Sync/org/tasks.org"
+    "~/Sync/org/notes/")))
 #+END_SRC
 *** org-download
 Drag and drop images to Emacs org-mode
@@ -751,7 +746,7 @@ Automatically add timestamp for completing tasks
 #+END_SRC
 ** fzf
 #+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-c f") 'fzf)
+(global-set-key (kbd "C-c f") 'fzf-directory)
 #+END_SRC
 * Buffer configuration
 ** kill correct buffer without confirmation
