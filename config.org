@@ -3,6 +3,10 @@
 #+DATE: 2020
 
 * UI configuration
+** quick fix for bspwm
+#+BEGIN_SRC emacs-lisp
+(setq frame-resize-pixelwise t)
+#+END_SRC
 ** frame defaults
 #+BEGIN_SRC emacs-lisp
 (use-package frame
@@ -344,7 +348,7 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
   :ensure t
   :config
   (setq deft-extensions '("txt" "tex" "org"))
-  (setq deft-directory "~/Nextcloud/org")
+  (setq deft-directory "~/Sync/org")
   (setq deft-recursive t)
   (global-set-key [f8] 'deft))
 #+END_SRC
@@ -356,6 +360,11 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
   (add-hook 'before-save-hook 'whitespace-cleanup))
 #+END_SRC
 ** Major modes
+*** Racket: =racket-mode=
+#+BEGIN_SRC emacs-lisp
+(use-package racket-mode
+  :ensure t)
+#+END_SRC
 *** Python: =Elpy=
 #+BEGIN_SRC emacs-lisp
 (use-package elpy
@@ -394,11 +403,18 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
   (setq reftex-plug-into-auctex t)
 
   ;; Default RefTeX bibliography
-  (setq reftex-default-bibliography '("~/Nextcloud/Universität/Masterarbeit/latex/thesis_1/MA.bib"))
+  (setq reftex-default-bibliography '("~/Sync/Universität/Masterarbeit/latex/thesis_1/MA.bib"))
 
   ;; Smart Quotes being not so smart
   (setq TeX-close-quote "}"
         TeX-open-quote "\\enquote{"))
+
+  ;; Set XeLaTeX as default TeX-engine
+  (setq-default TeX-engine 'xetex)
+  (setq TeX-view-program-selection '((output-pdf "Zathura")))
+  ;(setq TeX-view-program-list '("zathura" "zathura %o"))
+  ;(setq TeX-view-program-selection '(output-pdf "zathura"))
+
 
 (use-package auctex-latexmk
   :defer t
@@ -591,6 +607,13 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
         (smtpmail-debug-verbose . t)
         ))))
 #+END_SRC
+** Exports
+*** Export org to html: =htmlize=
+#+BEGIN_SRC emacs-lisp
+(use-package htmlize
+  :defer t
+  :ensure t)
+#+END_SRC
 * Org mode config
 ** UI
 *** org-bullets
@@ -620,7 +643,7 @@ Selecting buffers/files with great efficiency. In my opinion, Ido is enough to r
   :defer t
   :custom
   (org-journal-file-type 'yearly)
-  (org-journal-dir "~/Nextcloud/org/journal/")
+  (org-journal-dir "~/Sync/org/journal/")
   (org-journal-date-format "%A, %d %B %Y"))
 #+END_SRC
 ** snippets code insertion
@@ -670,21 +693,21 @@ Automatically add timestamp for completing tasks
 *** Capture
 #+BEGIN_SRC emacs-lisp
 (setq org-capture-templates
-      '(("t" "Aufgabe in tasks.org" entry (file+headline "~/Nextcloud/org/tasks.org" "Inbox")
+      '(("t" "Aufgabe in tasks.org" entry (file+headline "~/Sync/org/tasks.org" "Inbox")
          "* TODO %?")
-        ("w" "Waiting For Reply (Mail)" entry (file+headline "~/Nextcloud/org/tasks.org" "Inbox")
+        ("w" "Waiting For Reply (Mail)" entry (file+headline "~/Sync/org/tasks.org" "Inbox")
          "* WAITING Antwort auf %a")
-        ("m" "Aufgabe aus Mail" entry (file+headline "~/Nextcloud/org/tasks.org" "Inbox")
+        ("m" "Aufgabe aus Mail" entry (file+headline "~/Sync/org/tasks.org" "Inbox")
          "* TODO %? , Link: %a")
-        ("z" "Zeiteintrag in tasks.org" entry (file+headline "~/Nextcloud/org/tasks.org" "Inbox")
+        ("z" "Zeiteintrag in tasks.org" entry (file+headline "~/Sync/org/tasks.org" "Inbox")
          "* ZKTO %? \n  %i" :clock-in t :clock-resume t)
-        ("c" "Contacts" entry (file "~/Nextcloud/org/contacts.org")
+        ("c" "Contacts" entry (file "~/Sync/org/contacts.org")
          "* %(org-contacts-template-name) \n :PROPERTIES: %(org-contacts-template-email) \n :BIRTHDAY: \n :END:")
-        ("j" "Journal" entry (file+datetree "~/Nextcloud/org/journal.org")
+        ("j" "Journal" entry (file+datetree "~/Sync/org/journal.org")
          "* %?\nEntered on %U\n  %i")
-        ("p" "password" entry (file "~/Nextcloud/org/passwords.gpg")
+        ("p" "password" entry (file "~/Sync/org/passwords.gpg")
          "* %^{Title}\n  %^{PASSWORD}p %^{USERNAME}p")
-        ("b" "Bookmark" entry (file+headline "~/Nextcloud/org/notes/bookmarks.org" "Bookmarks")
+        ("b" "Bookmark" entry (file+headline "~/Sync/org/notes/bookmarks.org" "Bookmarks")
        "* %?\n:PROPERTIES:\n:CREATED: %U\n:NOTES:%^{Notes}\n:END:\n\n" :empty-lines 1)))
 #+END_SRC
 *** keybindings
@@ -692,11 +715,11 @@ Automatically add timestamp for completing tasks
 ;; Tasks-Datei auf C-c g
 (global-set-key (kbd "C-c g") '(lambda ()
                            (interactive)
-                           (find-file "~/Nextcloud/org/tasks.org")))
+                           (find-file "~/Sync/org/tasks.org")))
 
 (global-set-key (kbd "C-c b") '(lambda ()
                            (interactive)
-                           (find-file "~/Nextcloud/org/notes/bookmarks.org")))
+                           (find-file "~/Sync/org/notes/bookmarks.org")))
 
 ;; Agenda
 (global-set-key (kbd "C-c a") 'org-agenda)
@@ -734,7 +757,7 @@ Automatically add timestamp for completing tasks
 ;; qnotes.org
 (defun qnotes-open ()
   (interactive)
-  (find-file "~/Nextcloud/org/qnotes.org"))
+  (find-file "~/Sync/org/qnotes.org"))
 (global-set-key (kbd "C-c q") 'qnotes-open)
 #+END_SRC
 ** reload config.org
